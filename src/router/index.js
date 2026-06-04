@@ -8,6 +8,10 @@ const router = createRouter({
       path: '/',
       name: 'home',
       component: HomeView,
+      meta: {
+        headerTitle: 'Lumos',
+        showBackButton: false,
+      },
     },
     {
       path: '/about',

@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import BottomBarButton from './buttons/BottomBarButton.vue'
-import feedIcon from '../assets/bottomBar/feed.svg'
-import homeIcon from '../assets/bottomBar/home.svg'
-import mypageIcon from '../assets/bottomBar/mypage.svg'
-import routeIcon from '../assets/bottomBar/route.svg'
-import aiIcon from '../assets/bottomBar/ai.svg'
+import feedIcon from '../assets/images/bottomBar/feed.svg'
+import homeIcon from '../assets/images/bottomBar/home.svg'
+import mypageIcon from '../assets/images/bottomBar/mypage.svg'
+import routeIcon from '../assets/images/bottomBar/route.svg'
+import aiIcon from '../assets/images/bottomBar/ai.svg'
 
 const bottomButtons = [
   {
@@ -70,7 +70,7 @@ const rightButtons = bottomButtons.slice(2)
   justify-content: center;
   bottom: 0;
   left: 0;
-  z-index: 10;
+  z-index: 9999;
 
   height: 5rem;
   width: 100vw;
@@ -81,11 +81,11 @@ const rightButtons = bottomButtons.slice(2)
   align-items: center;
   justify-content: space-between;
 
-  width: min(95%, 1200px);
+  width: min(95%, 700px);
   height: 4.25rem;
   padding: 0 0.75rem;
 
-  background: rgba(0, 0, 0, 0.25);
+  background: rgba(73, 73, 73, 0.5);
   border-radius: 1.25rem;
   backdrop-filter: blur(20px);
 }
@@ -110,10 +110,10 @@ const rightButtons = bottomButtons.slice(2)
 
   color: white;
   text-decoration: none;
-  background: #3cd2ff;
+  background: #48cfff;
   border: 4px solid var(--color-background);
   border-radius: 50%;
-  box-shadow: 0 0.75rem 1.5rem rgba(66, 184, 131, 0.35);
+  box-shadow: 0 0.75rem 1.5rem rgba(72, 207, 255, 0.3);
 }
 
 .center-icon {
