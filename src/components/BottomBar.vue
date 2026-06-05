@@ -14,7 +14,7 @@ const bottomButtons = [
   },
   {
     icon: '여행지',
-    link: '/route',
+    link: '/list',
     imagePath: routeIcon,
   },
   {
@@ -86,7 +86,7 @@ const rightButtons = bottomButtons.slice(2)
   padding: 0 0.75rem;
 
   background: rgba(73, 73, 73, 0.5);
-  border-radius: 1.25rem;
+  border-radius: 5rem;
   backdrop-filter: blur(20px);
 }
 

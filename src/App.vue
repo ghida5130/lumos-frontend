@@ -7,7 +7,12 @@ import Header from './components/Header.vue'
 <template>
   <Header />
   <RouterView />
+  <div class="bottom-margin"></div>
   <BottomBar />
 </template>
 
-<style scoped></style>
+<style scoped>
+.bottom-margin {
+  height: 5rem;
+}
+</style>

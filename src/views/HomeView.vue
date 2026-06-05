@@ -13,7 +13,6 @@ import TopCarousel from '@/components/main/TopCarousel.vue'
     <ContentCarousel />
     <ContentCarousel />
     <ContentCarousel />
-    <div class="bottom-margin"></div>
   </main>
 </template>
 

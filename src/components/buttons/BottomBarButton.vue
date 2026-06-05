@@ -1,11 +1,11 @@
 <template>
-  <a :href="link" class="bottom-bar-button">
+  <router-link :to="link" class="bottom-bar-button">
     <img :src="imagePath" :alt="icon" class="icon" />
 
     <span class="label">
       {{ icon }}
     </span>
-  </a>
+  </router-link>
 </template>
 
 <script setup lang="ts">
