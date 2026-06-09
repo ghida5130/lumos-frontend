@@ -46,9 +46,9 @@ const rightButtons = bottomButtons.slice(2)
         />
       </div>
 
-      <a href="/create" class="center-button" aria-label="create">
-        <img :src="aiIcon" alt="ai" class="icon" width="30px" />
-      </a>
+      <router-link :to="{ name: 'ai' }" class="center-button">
+        <img :src="aiIcon" alt="AI 가이드" class="icon" width="30px" />
+      </router-link>
 
       <div class="button-group">
         <BottomBarButton

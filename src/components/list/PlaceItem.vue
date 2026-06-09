@@ -1,4 +1,6 @@
 <script setup>
+import { RouterLink } from 'vue-router'
+
 defineProps({
   place: {
     type: Object,
@@ -9,7 +11,7 @@ defineProps({
 
 <template>
   <article class="place-card">
-    <div class="place-item">
+    <RouterLink :to="{ name: 'detail', query: { id: place.id } }" class="place-item">
       <div class="place-image">
         <img v-if="place.image" :src="place.image" :alt="place.title" />
       </div>
@@ -24,7 +26,7 @@ defineProps({
           <li v-for="category in place.categories" :key="category">{{ category }}</li>
         </ul>
       </div>
-    </div>
+    </RouterLink>
   </article>
 </template>
 
@@ -35,6 +37,7 @@ defineProps({
 }
 
 .place-item {
+  display: block;
   width: 93%;
   margin: 0 auto;
 }

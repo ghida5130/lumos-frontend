@@ -34,7 +34,7 @@ header {
     position: absolute;
     left: 50%;
     transform: translateX(-50%);
-    font-size: 1.5rem;
+    font-size: 1.25rem;
     font-weight: 700;
   }
 }
