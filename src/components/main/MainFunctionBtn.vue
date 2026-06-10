@@ -5,8 +5,8 @@ import eventIcon from '@/assets/images/commonIcon/event.svg'
 import infoIcon from '@/assets/images/commonIcon/info.svg'
 
 const functionButtons = [
-  { name: '지도', icon: mapIcon, color: '#111B2C' },
-  { name: '검색', icon: searchIcon, color: '#17243B' },
+  { name: '지도', icon: mapIcon, color: '#111B2C', to: '/list' },
+  { name: '검색', icon: searchIcon, color: '#17243B', to: '/list' },
   { name: '이벤트', icon: eventIcon, color: '#1C2E4B' },
   { name: '정보', icon: infoIcon, color: '#283E65' },
 ]
@@ -14,16 +14,16 @@ const functionButtons = [
 
 <template>
   <section class="function-buttons" aria-label="Main page functions">
-    <button
+    <RouterLink
       v-for="button in functionButtons"
       :key="button.name"
       class="function-button"
-      type="button"
+      :to="button.to"
       :style="{ backgroundColor: button.color }"
     >
       <img :src="button.icon" :alt="button.name" />
       <p>{{ button.name }}</p>
-    </button>
+    </RouterLink>
   </section>
 </template>
 

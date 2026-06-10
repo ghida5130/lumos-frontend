@@ -31,7 +31,6 @@ const router = createRouter({
       component: () => import('../views/ListView.vue'),
       meta: {
         headerTitle: '여행지',
-        showBackButton: true,
       },
     },
     {
@@ -42,6 +41,10 @@ const router = createRouter({
       // this generates a separate chunk (About.[hash].js) for this route
       // which is lazy-loaded when the route is visited.
       component: () => import('../views/LoginTestPage.vue'),
+      meta: {
+        headerTitle: '로그인',
+        showBackButton: false,
+      },
     },
     {
       path: '/ai',
@@ -53,8 +56,8 @@ const router = createRouter({
       meta: {
         headerTitle: 'AI',
         showBackButton: true,
-        prevPath: '/',
         hideBottomBar: true,
+        requiresAuth: true,
       },
     },
     {
@@ -66,8 +69,6 @@ const router = createRouter({
       component: () => import('../views/FeedView.vue'),
       meta: {
         headerTitle: '피드',
-        showBackButton: true,
-        prevPath: '/',
       },
     },
     {
@@ -76,8 +77,6 @@ const router = createRouter({
       component: () => import('../views/MyPageView.vue'),
       meta: {
         headerTitle: '마이페이지',
-        showBackButton: true,
-        prevPath: '/',
         requiresAuth: true,
       },
     },
@@ -88,7 +87,6 @@ const router = createRouter({
       meta: {
         headerTitle: '여행지 상세 정보',
         showBackButton: true,
-        prevPath: '/list',
       },
     },
     {
@@ -98,7 +96,6 @@ const router = createRouter({
       meta: {
         headerTitle: '여행지 즐겨찾기',
         showBackButton: true,
-        prevPath: '/mypage',
       },
     },
   ],

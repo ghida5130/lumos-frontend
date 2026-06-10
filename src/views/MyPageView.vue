@@ -1,8 +1,15 @@
 <script setup>
-import { RouterLink } from 'vue-router'
+import { RouterLink, useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 
+const router = useRouter()
 const authStore = useAuthStore()
+
+const logout = () => {
+  authStore.clearAuth()
+  router.push('/')
+}
+
 const menuGroups = [
   [
     { id: 'saved-routes', label: '저장한 여행 경로' },
@@ -13,6 +20,7 @@ const menuGroups = [
     { id: 'edit-profile', label: '프로필 수정하기' },
     { id: 'notifications', label: '알림 설정' },
     { id: 'withdraw', label: '회원 탈퇴' },
+    { id: 'logout', label: '로그아웃', action: logout },
   ],
 ]
 </script>
@@ -45,7 +53,7 @@ const menuGroups = [
               <path d="m9 18 6-6-6-6" />
             </svg>
           </RouterLink>
-          <button v-else type="button" class="menu-item">
+          <button v-else type="button" class="menu-item" @click="item.action?.()">
             <span>{{ item.label }}</span>
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path d="m9 18 6-6-6-6" />

@@ -3,6 +3,7 @@ import image1 from '@/assets/images/mock/carousel/1.jpg'
 import image2 from '@/assets/images/mock/carousel/2.jpg'
 import image3 from '@/assets/images/mock/carousel/3.jpg'
 import image4 from '@/assets/images/mock/carousel/4.jpg'
+import { RouterLink } from 'vue-router'
 
 const carouselItems = [
   {
@@ -44,7 +45,12 @@ const carouselItems = [
     </div>
 
     <div class="carousel-scroller">
-      <article v-for="item in carouselItems" :key="item.id" class="carousel-card">
+      <RouterLink
+        v-for="item in carouselItems"
+        :key="item.id"
+        :to="{ name: 'detail', query: { id: item.id } }"
+        class="carousel-card"
+      >
         <div class="card-media" aria-hidden="true">
           <img v-if="item.image" :src="item.image" :alt="item.title" />
         </div>
@@ -56,7 +62,7 @@ const carouselItems = [
             <p>{{ item.location }}</p>
           </div>
         </div>
-      </article>
+      </RouterLink>
     </div>
   </section>
 </template>
@@ -111,8 +117,15 @@ const carouselItems = [
   border: 1px solid rgba(255, 255, 255, 0.18);
   border-radius: 1.25rem;
   background: #111827;
+  color: inherit;
+  text-decoration: none;
   scroll-snap-align: start;
   scroll-snap-stop: always;
+}
+
+.carousel-card:focus-visible {
+  outline: 2px solid #8cddff;
+  outline-offset: 3px;
 }
 
 .card-media {
