@@ -7,8 +7,8 @@ import infoIcon from '@/assets/images/commonIcon/info.svg'
 const functionButtons = [
   { name: '지도', icon: mapIcon, color: '#111B2C', to: '/list' },
   { name: '검색', icon: searchIcon, color: '#17243B', to: '/list' },
-  { name: '이벤트', icon: eventIcon, color: '#1C2E4B' },
-  { name: '정보', icon: infoIcon, color: '#283E65' },
+  { name: '이벤트', icon: eventIcon, color: '#1C2E4B', to: '/' },
+  { name: '정보', icon: infoIcon, color: '#283E65', to: '/' },
 ]
 </script>
 
