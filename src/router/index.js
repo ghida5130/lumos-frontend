@@ -1,9 +1,13 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
+import { refreshAccessToken } from '../services/authSession'
 import { useAuthStore } from '../stores/auth'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
+  scrollBehavior() {
+    return { top: 0, left: 0 }
+  },
   routes: [
     {
       path: '/',
@@ -90,6 +94,19 @@ const router = createRouter({
       },
     },
     {
+      path: '/place-map',
+      name: 'place-map',
+      component: () => import('../views/MapView.vue'),
+      props: () => ({
+        places: window.history.state?.places ?? [],
+      }),
+      meta: {
+        headerTitle: '지도에서 확인하기',
+        showBackButton: true,
+        hideBottomBar: true,
+      },
+    },
+    {
       path: '/favorites',
       name: 'favorites',
       component: () => import('../views/FavoritePlacesView.vue'),
@@ -98,10 +115,80 @@ const router = createRouter({
         showBackButton: true,
       },
     },
+    {
+      path: '/saved-courses',
+      name: 'saved-courses',
+      component: () => import('../views/SavedCoursesView.vue'),
+      meta: {
+        headerTitle: '저장한 여행 경로',
+        showBackButton: true,
+        requiresAuth: true,
+      },
+    },
+    {
+      path: '/withdraw',
+      name: 'withdraw',
+      component: () => import('../views/WithdrawView.vue'),
+      meta: {
+        headerTitle: '회원 탈퇴',
+        showBackButton: true,
+        requiresAuth: true,
+      },
+    },
+    {
+      path: '/edit-profile',
+      name: 'edit-profile',
+      component: () => import('../views/EditProfileView.vue'),
+      meta: {
+        headerTitle: '프로필 수정',
+        showBackButton: true,
+        requiresAuth: true,
+      },
+    },
+    {
+      path: '/error',
+      name: 'error',
+      component: () => import('../views/ErrorView.vue'),
+      meta: {
+        headerTitle: '오류',
+        showBackButton: true,
+        hideBottomBar: true,
+      },
+    },
+    {
+      path: '/api-test',
+      name: 'api-test',
+      component: () => import('../views/ApiTestView.vue'),
+      meta: {
+        headerTitle: 'API 테스트',
+        showBackButton: true,
+        hideBottomBar: true,
+      },
+    },
+    {
+      path: '/path-api-test',
+      name: 'path-api-test',
+      component: () => import('../views/PathApiTestView.vue'),
+      meta: {
+        headerTitle: 'API 경로 테스트',
+        showBackButton: true,
+        hideBottomBar: true,
+      },
+    },
+    {
+      path: '/multipart-api-test',
+      name: 'multipart-api-test',
+      component: () => import('../views/MultipartApiTestView.vue'),
+      meta: {
+        headerTitle: 'Multipart API 테스트',
+        showBackButton: true,
+        hideBottomBar: true,
+      },
+    },
   ],
 })
 
-router.beforeEach((to) => {
+router.beforeEach(async (to) => {
   const requiresAuth = to.matched.some((route) => route.meta.requiresAuth)
 
   if (!requiresAuth) {
@@ -112,6 +199,13 @@ router.beforeEach((to) => {
 
   if (authStore.isLoggedIn) {
     return true
+  }
+
+  try {
+    await refreshAccessToken()
+    return true
+  } catch {
+    // Refresh Token까지 사용할 수 없을 때 로그인 페이지로 이동한다.
   }
 
   return {

@@ -1,12 +1,15 @@
 <script setup>
-import ContentCarousel from '@/components/main/ContentCarousel.vue'
-import MainFunctionBtn from '@/components/main/MainFunctionBtn.vue'
-import RegionBtn from '@/components/main/regionBtn.vue'
-import TopCarousel from '@/components/main/TopCarousel.vue'
+import ContentCarousel from "@/components/main/ContentCarousel.vue";
+import MainFunctionBtn from "@/components/main/MainFunctionBtn.vue";
+import RegionBtn from "@/components/main/regionBtn.vue";
+import TopCarousel from "@/components/main/TopCarousel.vue";
 </script>
 
 <template>
   <main class="home-view">
+    <!-- <RouterLink to="/api-test">api test</RouterLink>
+    <RouterLink to="/path-api-test">path api test</RouterLink>
+    <RouterLink to="/multipart-api-test">multipart api test</RouterLink> -->
     <TopCarousel />
     <MainFunctionBtn />
     <RegionBtn />

@@ -18,12 +18,19 @@ defineProps({
       <div class="place-info">
         <div class="place-title-row">
           <h2>{{ place.title }}</h2>
-          <p class="rating" aria-label="평점">⭐ {{ place.rating }}</p>
+          <p class="like-count" aria-label="좋아요 수">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M20.8 4.6c-1.9-1.8-4.9-1.7-6.7.2L12 7l-2.1-2.2C8.1 2.9 5.1 2.8 3.2 4.6 1.1 6.6 1 9.9 3 12l9 8.7 9-8.7c2-2.1 1.9-5.4-.2-7.4Z"
+              />
+            </svg>
+            {{ place.likeCount }}
+          </p>
         </div>
-        <p class="location">{{ place.location }}</p>
+        <p class="category">{{ place.category }}</p>
         <p class="description">{{ place.description }}</p>
-        <ul class="category-list" aria-label="장소 분류">
-          <li v-for="category in place.categories" :key="category">{{ category }}</li>
+        <ul class="tag-list" aria-label="장소 태그">
+          <li v-for="tag in place.tags" :key="tag">{{ tag }}</li>
         </ul>
       </div>
     </RouterLink>
@@ -57,16 +64,20 @@ defineProps({
   object-position: center;
 }
 
-.rating {
+.like-count {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 0.25rem;
   margin-bottom: 0.5rem;
   color: #e8f8ff;
   font-size: 1rem;
   font-weight: 700;
 }
 
-.rating svg {
-  width: 0.8rem;
-  fill: #8cddff;
+.like-count svg {
+  width: 0.95rem;
+  fill: #ff6f9f;
 }
 
 .place-info {
@@ -98,7 +109,7 @@ defineProps({
   font-weight: 700;
 }
 
-.location {
+.category {
   margin-top: 0.45rem;
   color: #74cfff;
   font-size: 0.72rem;
@@ -115,13 +126,14 @@ defineProps({
   -webkit-line-clamp: 2;
 }
 
-.category-list {
+.tag-list {
   display: flex;
+  flex-wrap: wrap;
   gap: 0.5rem;
   margin-top: 0.85rem;
 }
 
-.category-list li {
+.tag-list li {
   padding: 0.3rem 0.55rem;
   color: #aeb9c8;
   background: #202b3a;

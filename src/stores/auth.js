@@ -21,11 +21,14 @@ export const useAuthStore = defineStore('auth', () => {
 
   function setAuth({ token, user } = {}) {
     setAccessToken(token)
-    setUser(user)
+
+    if (user) {
+      setUser(user)
+    }
   }
 
   function clearAuth() {
-    accessToken.value = ''
+    setAccessToken('')
     email.value = ''
     nickname.value = ''
     profileImageUrl.value = ''

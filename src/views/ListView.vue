@@ -1,85 +1,128 @@
 <script setup>
-import PlaceItem from '@/components/list/PlaceItem.vue'
-import SearchPanel from '@/components/list/SearchPanel.vue'
-import { computed, ref } from 'vue'
-import image3 from '@/assets/images/mock/carousel/3.jpg'
-import image4 from '@/assets/images/mock/carousel/4.jpg'
-import image5 from '@/assets/images/mock/carousel/5.jpg'
+import PlaceItem from "@/components/list/PlaceItem.vue";
+import SearchPanel from "@/components/list/SearchPanel.vue";
+import { getPlaceList } from "@/api/place";
+import { computed, onMounted, ref } from "vue";
+import { useRouter } from "vue-router";
 
-const places = ref([
-  {
-    id: 1,
-    title: '광안리 해수욕장',
-    description: '야경과 바다를 함께 즐길 수 있는 부산의 대표 명소',
-    location: '부산 수영구',
-    distance: '2.4km',
-    rating: '4.9',
-    categories: ['바다', '야경'],
-    image: image3,
-  },
-  {
-    id: 2,
-    title: '서울숲',
-    description: '도심 속에서 산책과 여유를 즐길 수 있는 넓은 공원',
-    location: '서울 성동구',
-    distance: '4.1km',
-    rating: '4.8',
-    categories: ['공원', '산책'],
-    image: image4,
-  },
-  {
-    id: 3,
-    title: '한옥마을',
-    description: '고즈넉한 골목을 따라 전통의 분위기를 느낄 수 있는 곳',
-    location: '전북 전주시',
-    distance: '6.8km',
-    rating: '4.7',
-    categories: ['전통', '문화'],
-    image: image5,
-  },
-])
+const PAGE_SIZE = 10;
+const MAP_PLACES_STORAGE_KEY = "lumos:map-places";
+const filterOptions = ["전체", "관광지", "숙소", "식당"];
+const router = useRouter();
 
-const filterOptions = ['전체', '관광지', '맛집', '카페', '문화', '자연']
-const recentSearches = ref(['광안대교', '서울 야경', '한옥마을'])
-const searchKeyword = ref('')
-const appliedKeyword = ref('')
-const selectedFilters = ref([])
-const appliedFilters = ref([])
-const isSearchOpen = ref(false)
+const places = ref([]);
+const recentSearches = ref(["광안대교", "서울 야경", "한옥마을"]);
+const searchKeyword = ref("");
+const appliedKeyword = ref("");
+const selectedCategory = ref("");
+const appliedCategory = ref("");
+const isSearchOpen = ref(false);
+const isLoading = ref(false);
+const errorMessage = ref("");
+const page = ref(0);
+const totalElements = ref(0);
+const totalPages = ref(0);
+
+const mappedPlaces = computed(() =>
+  places.value.map((place) => ({
+    id: place.placeId,
+    title: place.name,
+    description: place.summary,
+    category: place.category,
+    likeCount: place.likeCount,
+    tags: place.tags ?? [],
+    image: place.imageUrl,
+    latitude: place.latitude,
+    longitude: place.longitude,
+  })),
+);
+
+const lastPageIndex = computed(() => Math.max(totalPages.value - 1, 0));
+
+const visiblePages = computed(() => {
+  const start = Math.max(page.value - 2, 0);
+  const end = Math.min(start + 5, totalPages.value);
+  const adjustedStart = Math.max(end - 5, 0);
+
+  return Array.from({ length: end - adjustedStart }, (_, index) => adjustedStart + index);
+});
 
 const resultTitle = computed(() => {
-  if (!appliedKeyword.value && appliedFilters.value.length === 0) return '전체 장소'
-  return appliedKeyword.value ? `'${appliedKeyword.value}' 검색 결과` : '필터 검색 결과'
-})
+  if (!appliedKeyword.value && !appliedCategory.value) return "전체 장소";
+  return appliedKeyword.value
+    ? `'${appliedKeyword.value}' 검색 결과`
+    : `${appliedCategory.value} 검색 결과`;
+});
 
-const toggleFilter = (filter) => {
-  if (filter === '전체') {
-    selectedFilters.value = []
-    return
+const loadPlaces = async (targetPage = 0) => {
+  isLoading.value = true;
+  errorMessage.value = "";
+
+  try {
+    const result = await getPlaceList({
+      category: appliedCategory.value || undefined,
+      keyword: appliedKeyword.value || undefined,
+      page: targetPage,
+      size: PAGE_SIZE,
+    });
+
+    places.value = result.content ?? [];
+    page.value = result.page ?? targetPage;
+    totalElements.value = result.totalElements ?? places.value.length;
+    totalPages.value = result.totalPages ?? 1;
+  } catch {
+    places.value = [];
+    totalElements.value = 0;
+    totalPages.value = 0;
+    errorMessage.value = "장소 목록을 불러오지 못했습니다.";
+  } finally {
+    isLoading.value = false;
   }
+};
 
-  selectedFilters.value = selectedFilters.value.includes(filter)
-    ? selectedFilters.value.filter((item) => item !== filter)
-    : [...selectedFilters.value, filter]
-}
+const selectFilter = (filter) => {
+  selectedCategory.value = filter === "전체" ? "" : filter;
+};
 
-const applySearch = (keyword = searchKeyword.value) => {
-  const normalizedKeyword = keyword.trim()
+const applySearch = async (keyword = searchKeyword.value) => {
+  const normalizedKeyword = keyword.trim();
 
-  searchKeyword.value = normalizedKeyword
-  appliedKeyword.value = normalizedKeyword
-  appliedFilters.value = [...selectedFilters.value]
+  searchKeyword.value = normalizedKeyword;
+  appliedKeyword.value = normalizedKeyword;
+  appliedCategory.value = selectedCategory.value;
 
   if (normalizedKeyword && !recentSearches.value.includes(normalizedKeyword)) {
-    recentSearches.value = [normalizedKeyword, ...recentSearches.value].slice(0, 5)
+    recentSearches.value = [normalizedKeyword, ...recentSearches.value].slice(0, 5);
   }
 
-  isSearchOpen.value = false
-}
+  isSearchOpen.value = false;
+  await loadPlaces(0);
+};
+
+const goToPage = async (targetPage) => {
+  if (targetPage < 0 || targetPage > lastPageIndex.value || targetPage === page.value) return;
+
+  await loadPlaces(targetPage);
+};
 
 const removeRecentSearch = (keyword) => {
-  recentSearches.value = recentSearches.value.filter((item) => item !== keyword)
-}
+  recentSearches.value = recentSearches.value.filter((item) => item !== keyword);
+};
+
+const goToMap = () => {
+  sessionStorage.setItem(MAP_PLACES_STORAGE_KEY, JSON.stringify(mappedPlaces.value));
+
+  router.push({
+    name: "place-map",
+    state: {
+      places: mappedPlaces.value,
+    },
+  });
+};
+
+onMounted(() => {
+  loadPlaces(0);
+});
 </script>
 
 <template>
@@ -95,36 +138,76 @@ const removeRecentSearch = (keyword) => {
           <circle cx="11" cy="11" r="6.5" />
           <path d="m16 16 4 4" />
         </svg>
-        <span>{{ appliedKeyword || '어디로 떠나볼까요?' }}</span>
-        <span v-if="appliedFilters.length" class="filter-count">{{ appliedFilters.length }}</span>
+        <span>{{ appliedKeyword || "어디로 떠나볼까요?" }}</span>
+        <span v-if="appliedCategory" class="filter-count">1</span>
       </button>
 
       <div class="result-heading">
         <div>
           <p>{{ resultTitle }}</p>
-          <strong>{{ places.length }}개의 장소</strong>
+          <strong>{{ totalElements }}개의 장소</strong>
         </div>
-        <button type="button">추천순</button>
+        <button type="button" class="map-button" :disabled="!mappedPlaces.length" @click="goToMap">
+          지도에서 확인하기
+        </button>
       </div>
 
-      <ul v-if="appliedFilters.length" class="applied-filter-list" aria-label="적용된 필터">
-        <li v-for="filter in appliedFilters" :key="filter">{{ filter }}</li>
+      <ul v-if="appliedCategory" class="applied-filter-list" aria-label="적용된 필터">
+        <li>{{ appliedCategory }}</li>
       </ul>
 
-      <section class="place-list" aria-label="장소 검색 결과">
-        <PlaceItem v-for="place in places" :key="place.id" :place="place" />
+      <section v-if="isLoading" class="place-skeleton-list" aria-label="장소 목록 로딩 중">
+        <article v-for="index in 6" :key="index" class="place-skeleton">
+          <span class="skeleton-image"></span>
+          <span class="skeleton-body">
+            <i></i>
+            <i></i>
+            <i></i>
+          </span>
+        </article>
       </section>
+      <p v-else-if="errorMessage" class="status-message">{{ errorMessage }}</p>
+      <p v-else-if="!mappedPlaces.length" class="status-message">표시할 장소가 없습니다.</p>
+
+      <!-- -- 결과 표시 -- -->
+      <section v-else class="place-list" aria-label="장소 검색 결과">
+        <PlaceItem v-for="place in mappedPlaces" :key="place.id" :place="place" />
+      </section>
+
+      <nav v-if="totalPages > 1" class="pagination" aria-label="장소 목록 페이지">
+        <button type="button" :disabled="page === 0 || isLoading" @click="goToPage(page - 1)">
+          이전
+        </button>
+        <button
+          v-for="pageNumber in visiblePages"
+          :key="pageNumber"
+          type="button"
+          :class="{ active: pageNumber === page }"
+          :disabled="isLoading"
+          :aria-current="pageNumber === page ? 'page' : undefined"
+          @click="goToPage(pageNumber)"
+        >
+          {{ pageNumber + 1 }}
+        </button>
+        <button
+          type="button"
+          :disabled="page >= lastPageIndex || isLoading"
+          @click="goToPage(page + 1)"
+        >
+          다음
+        </button>
+      </nav>
     </section>
 
     <SearchPanel
       v-else
       v-model:keyword="searchKeyword"
       :filter-options="filterOptions"
-      :selected-filters="selectedFilters"
+      :selected-filters="selectedCategory ? [selectedCategory] : []"
       :recent-searches="recentSearches"
       @close="isSearchOpen = false"
       @search="applySearch"
-      @toggle-filter="toggleFilter"
+      @toggle-filter="selectFilter"
       @clear-recent="recentSearches = []"
       @remove-recent="removeRecentSearch"
     />
@@ -140,7 +223,6 @@ const removeRecentSearch = (keyword) => {
 .result-page {
   width: min(100%, 44rem);
   margin: 0 auto;
-  /* padding: 0.5rem 1rem 1.5rem; */
 }
 
 .search-trigger {
@@ -148,14 +230,14 @@ const removeRecentSearch = (keyword) => {
   align-items: center;
   gap: 0.7rem;
   width: 90%;
-  margin: 0 auto;
   min-height: 3.25rem;
+  margin: 0 auto;
   padding: 0 1rem;
   color: #9ba9bc;
+  text-align: left;
   background: #172233;
   border: 1px solid #314258;
   border-radius: 1.25rem;
-  text-align: left;
 }
 
 .search-trigger svg {
@@ -180,10 +262,10 @@ const removeRecentSearch = (keyword) => {
   width: 1.45rem;
   height: 1.45rem;
   color: #07111d;
-  background: #71d3ff;
-  border-radius: 50%;
   font-size: 0.75rem;
   font-weight: 700;
+  background: #71d3ff;
+  border-radius: 50%;
 }
 
 .result-heading {
@@ -205,15 +287,27 @@ const removeRecentSearch = (keyword) => {
   font-weight: 700;
 }
 
-.result-heading button {
+.map-button {
+  min-height: 2rem;
+  padding: 0 0.7rem;
   color: #79cfff;
+  background: rgba(72, 207, 255, 0.1);
+  border: 1px solid rgba(114, 211, 255, 0.26);
+  border-radius: 999px;
   font-size: 0.78rem;
   font-weight: 600;
+}
+
+.map-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
 }
 
 .applied-filter-list {
   display: flex;
   gap: 0.5rem;
+  width: 90%;
+  margin: 0 auto;
   padding-bottom: 1rem;
   overflow-x: auto;
   scrollbar-width: none;
@@ -227,6 +321,135 @@ const removeRecentSearch = (keyword) => {
   border: 1px solid rgba(114, 211, 255, 0.35);
   border-radius: 999px;
   font-size: 0.72rem;
+}
+
+.status-message {
+  width: 90%;
+  margin: 3rem auto;
+  color: #91a0b4;
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.place-list,
+.place-skeleton-list {
+  animation: contentIn 0.22s ease both;
+}
+
+.place-skeleton-list {
+  display: grid;
+  gap: 0.75rem;
+  width: 90%;
+  margin: 0 auto;
+}
+
+.place-skeleton {
+  display: grid;
+  grid-template-columns: 6rem minmax(0, 1fr);
+  gap: 0.85rem;
+  min-height: 6.6rem;
+  padding: 0.75rem;
+  background: #172233;
+  border: 1px solid #314258;
+  border-radius: 0.75rem;
+}
+
+.skeleton-image,
+.skeleton-body i {
+  position: relative;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.075);
+  border-radius: 0.55rem;
+}
+
+.skeleton-image::after,
+.skeleton-body i::after {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.08), transparent);
+  content: '';
+  animation: skeletonSweep 1.25s ease-in-out infinite;
+}
+
+.skeleton-image {
+  aspect-ratio: 1;
+}
+
+.skeleton-body {
+  display: grid;
+  align-content: center;
+  gap: 0.55rem;
+}
+
+.skeleton-body i {
+  height: 0.72rem;
+}
+
+.skeleton-body i:nth-child(1) {
+  width: 68%;
+}
+
+.skeleton-body i:nth-child(2) {
+  width: 92%;
+}
+
+.skeleton-body i:nth-child(3) {
+  width: 48%;
+}
+
+@keyframes skeletonSweep {
+  from {
+    transform: translateX(-100%);
+  }
+
+  to {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes contentIn {
+  from {
+    opacity: 0;
+    transform: translateY(0.35rem);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.pagination {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.45rem;
+  width: 90%;
+  margin: 1.5rem auto 0;
+  padding-bottom: 1.5rem;
+}
+
+.pagination button {
+  min-width: 2.25rem;
+  min-height: 2.25rem;
+  padding: 0 0.65rem;
+  color: #b8c6d8;
+  background: #172233;
+  border: 1px solid #314258;
+  border-radius: 0.45rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.pagination button.active {
+  color: #07111d;
+  background: #78d7ff;
+  border-color: #78d7ff;
+}
+
+.pagination button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
 }
 
 @media (min-width: 600px) {

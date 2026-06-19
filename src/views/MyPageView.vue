@@ -1,25 +1,43 @@
 <script setup>
+import { computed } from 'vue'
+import { useMutation } from '@tanstack/vue-query'
 import { RouterLink, useRouter } from 'vue-router'
-import { useAuthStore } from '../stores/auth'
+import { postLogout } from '@/api/auth'
+import { clearAuthSession } from '@/services/authSession'
+import { useAuthStore } from '@/stores/auth'
+import { useToastStore } from '@/stores/toast'
 
 const router = useRouter()
 const authStore = useAuthStore()
+const toastStore = useToastStore()
 
-const logout = () => {
-  authStore.clearAuth()
-  router.push('/')
+const logoutMutation = useMutation({
+  mutationFn: postLogout,
+  meta: {
+    errorMode: 'local',
+  },
+  onSuccess: () => {
+    clearAuthSession()
+    router.replace('/')
+  },
+})
+
+const logoutErrorMessage = computed(() => logoutMutation.error.value?.message ?? '')
+const logout = () => logoutMutation.mutate()
+const showToastTest = () => {
+  toastStore.success('토스트가 정상적으로 표시됩니다.')
 }
 
 const menuGroups = [
   [
-    { id: 'saved-routes', label: '저장한 여행 경로' },
+    { id: 'saved-routes', label: '저장한 여행 경로', routeName: 'saved-courses' },
     { id: 'favorite-places', label: '여행지 즐겨찾기', routeName: 'favorites' },
   ],
   [
     { id: 'settings', label: '설정' },
-    { id: 'edit-profile', label: '프로필 수정하기' },
+    { id: 'edit-profile', label: '프로필 수정하기', routeName: 'edit-profile' },
     { id: 'notifications', label: '알림 설정' },
-    { id: 'withdraw', label: '회원 탈퇴' },
+    { id: 'withdraw', label: '회원 탈퇴', routeName: 'withdraw' },
     { id: 'logout', label: '로그아웃', action: logout },
   ],
 ]
@@ -41,7 +59,8 @@ const menuGroups = [
         </div>
       </div>
 
-      <button class="edit-profile-button" type="button">프로필 수정하기</button>
+      <RouterLink class="edit-profile-button" :to="{ name: 'edit-profile' }">프로필 수정하기</RouterLink>
+      <button class="toast-test-button" type="button" @click="showToastTest">토스트 테스트</button>
     </section>
 
     <nav class="mypage-menu">
@@ -53,7 +72,13 @@ const menuGroups = [
               <path d="m9 18 6-6-6-6" />
             </svg>
           </RouterLink>
-          <button v-else type="button" class="menu-item" @click="item.action?.()">
+          <button
+            v-else
+            type="button"
+            class="menu-item"
+            :disabled="item.id === 'logout' && logoutMutation.isPending.value"
+            @click="item.action?.()"
+          >
             <span>{{ item.label }}</span>
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path d="m9 18 6-6-6-6" />
@@ -61,6 +86,8 @@ const menuGroups = [
           </button>
         </li>
       </ul>
+
+      <p v-if="logoutErrorMessage" class="logout-error">{{ logoutErrorMessage }}</p>
     </nav>
 
   </main>
@@ -82,6 +109,12 @@ const menuGroups = [
   z-index: 1;
   width: min(100%, 38rem);
   margin: 0 auto;
+}
+
+.logout-error {
+  color: #ffbaba;
+  font-size: 0.78rem;
+  text-align: center;
 }
 
 .profile-summary {
@@ -130,6 +163,9 @@ const menuGroups = [
 }
 
 .edit-profile-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: 100%;
   min-height: 2.55rem;
   color: #eef7ff;
@@ -142,8 +178,27 @@ const menuGroups = [
     transform 0.2s ease;
 }
 
+.toast-test-button {
+  width: 100%;
+  min-height: 2.55rem;
+  margin-top: 0.75rem;
+  color: #071321;
+  background: #48cfff;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
+}
+
 .edit-profile-button:active {
   background: #3a5d93;
+  transform: scale(0.99);
+}
+
+.toast-test-button:active {
+  background: #7edfff;
   transform: scale(0.99);
 }
 

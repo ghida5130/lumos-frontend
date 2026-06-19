@@ -1,117 +1,168 @@
 <script setup>
-import image3 from '@/assets/images/mock/carousel/3.jpg'
-import image4 from '@/assets/images/mock/carousel/4.jpg'
-import image5 from '@/assets/images/mock/carousel/5.jpg'
-import { ref, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { computed, ref, watch } from "vue";
+import { useRoute } from "vue-router";
+import { getPlaceDetail } from "@/api/place";
+import { getPlaceReviews, postReviewLike } from "@/api/review";
+import { useToastStore } from "@/stores/toast";
 
-const route = useRoute()
-const place = ref(null)
-const isLoading = ref(false)
+const REVIEW_PLACE_ID = 1;
 
-const dummyPlaces = {
-  1: {
-    id: 1,
-    title: '광안리 해수욕장',
-    image: image3,
-    rating: '4.9',
-    reviewCount: '1,240',
-    categories: ['야경', '산책', '데이트', '부산 대표명소'],
-    description:
-      '광안대교의 환상적인 야경과 파도 소리를 동시에 즐길 수 있는 부산의 대표 명소입니다. 도심의 빛과 바다의 평온함이 어우러진 감성적인 분위기를 선사하며, 야간 사진 촬영과 산책에 최적화된 장소입니다.',
-    address: '부산광역시 수영구 광안해변로 219',
-    addressDetail: '지하철 부산역에서 수영구 광안동 192-20',
-    phone: '051-622-4251',
-    hours: '매일 00:00 - 24:00 (연중무휴)',
-    reviews: [
-      {
-        id: 1,
-        author: '김지민',
-        avatar: '김',
-        rating: 5,
-        content:
-          '밤에 보는 광안대교는 정말 환상적이에요. 해변가 바에서 칵테일 한 잔 하며 야경 보기 딱 좋습니다.',
-      },
-      {
-        id: 2,
-        author: '박준서',
-        avatar: '박',
-        rating: 5,
-        content:
-          '주말 드론쇼는 꼭 보세요! 사람이 많긴 하지만 그만큼 가치 있는 볼거리입니다. 분위기가 정말 고급스러워요.',
-      },
-    ],
-  },
-  2: {
-    id: 2,
-    title: '서울숲',
-    image: image4,
-    rating: '4.8',
-    reviewCount: '864',
-    categories: ['공원', '산책', '피크닉'],
-    description:
-      '도심 속에서 넓은 잔디밭과 숲길을 만날 수 있는 서울의 대표 공원입니다. 계절마다 달라지는 풍경과 여유로운 산책로를 즐길 수 있습니다.',
-    address: '서울특별시 성동구 뚝섬로 273',
-    addressDetail: '수인분당선 서울숲역 3번 출구',
-    phone: '02-460-2905',
-    hours: '매일 00:00 - 24:00',
-    reviews: [
-      {
-        id: 1,
-        author: '이수현',
-        avatar: '이',
-        rating: 5,
-        content: '나무 그늘이 많아서 천천히 산책하기 좋았어요. 도심 속 휴식 공간으로 추천합니다.',
-      },
-    ],
-  },
-  3: {
-    id: 3,
-    title: '전주 한옥마을',
-    image: image5,
-    rating: '4.7',
-    reviewCount: '932',
-    categories: ['전통', '문화', '골목여행'],
-    description:
-      '고즈넉한 한옥과 전통문화가 살아 있는 전주의 대표 여행지입니다. 골목을 걸으며 다양한 먹거리와 공방, 문화 체험을 만날 수 있습니다.',
-    address: '전북특별자치도 전주시 완산구 기린대로 99',
-    addressDetail: '전주한옥마을 관광안내소 인근',
-    phone: '063-282-1330',
-    hours: '매일 00:00 - 24:00',
-    reviews: [
-      {
-        id: 1,
-        author: '최은지',
-        avatar: '최',
-        rating: 5,
-        content: '저녁 무렵 조명이 켜진 골목이 특히 아름다웠어요. 천천히 둘러보기를 추천해요.',
-      },
-    ],
-  },
+const route = useRoute();
+const toastStore = useToastStore();
+
+const place = ref(null);
+const reviews = ref([]);
+const reviewTotalCount = ref(0);
+const isLoading = ref(false);
+const errorMessage = ref("");
+const pendingReviewLikes = ref(new Set());
+
+const reviewCountLabel = computed(() => reviewTotalCount.value || place.value?.reviewCount || 0);
+
+function formatHours(openingTime, closingTime) {
+  if (!openingTime && !closingTime) {
+    return "영업시간 정보 없음";
+  }
+
+  return `${openingTime ?? "-"} - ${closingTime ?? "-"}`;
 }
 
-const loadPlaceDetails = async (id) => {
-  isLoading.value = true
+function getAvatarName(nickname) {
+  return nickname?.trim()?.slice(0, 1) || "?";
+}
 
-  // 추후 API 요청으로 교체: place.value = await getPlaceDetails(id)
-  place.value = dummyPlaces[id] ?? dummyPlaces[1]
-  isLoading.value = false
+function formatCreatedAt(createdAt) {
+  if (!createdAt) {
+    return "";
+  }
+
+  return createdAt.replace("T", " ").slice(0, 16);
+}
+
+function mapPlace(placeData) {
+  const tags = placeData.tags ?? [];
+  const categories = [placeData.category, ...tags].filter(Boolean);
+
+  return {
+    id: placeData.placeId,
+    title: placeData.name,
+    image: placeData.imageUrl,
+    categories,
+    description: placeData.description,
+    address: placeData.roadAddress || placeData.address,
+    addressDetail: placeData.roadAddress ? placeData.address : "",
+    phone: placeData.phone || "전화번호 정보 없음",
+    hours: formatHours(placeData.openingTime, placeData.closingTime),
+    likeCount: placeData.likeCount ?? 0,
+    reviewCount: placeData.reviewCount ?? 0,
+  };
+}
+
+function mapReview(reviewData) {
+  return {
+    id: reviewData.reviewId,
+    author: reviewData.nickname || "익명",
+    avatar: getAvatarName(reviewData.nickname),
+    content: reviewData.content,
+    likeCount: reviewData.likeCount ?? 0,
+    createdAt: formatCreatedAt(reviewData.createdAt),
+    createdAtDateTime: reviewData.createdAt,
+    imageUrls: reviewData.imageUrls ?? [],
+  };
+}
+
+async function loadPlaceDetails(id) {
+  isLoading.value = true;
+  errorMessage.value = "";
+
+  try {
+    const [placeData, reviewData] = await Promise.all([
+      getPlaceDetail(id),
+      getPlaceReviews(REVIEW_PLACE_ID),
+    ]);
+
+    place.value = mapPlace(placeData);
+    reviews.value = (reviewData.content ?? []).map(mapReview);
+    reviewTotalCount.value = reviewData.totalElements ?? reviews.value.length;
+  } catch {
+    place.value = null;
+    reviews.value = [];
+    reviewTotalCount.value = 0;
+    errorMessage.value = "여행지 상세 정보를 불러오지 못했습니다.";
+  } finally {
+    isLoading.value = false;
+  }
+}
+
+async function addReviewLike(reviewId) {
+  if (pendingReviewLikes.value.has(reviewId)) {
+    return;
+  }
+
+  const targetReview = reviews.value.find((review) => review.id === reviewId);
+
+  if (!targetReview) {
+    return;
+  }
+
+  const previousLikeCount = targetReview.likeCount;
+  pendingReviewLikes.value = new Set([...pendingReviewLikes.value, reviewId]);
+  targetReview.likeCount += 1;
+
+  try {
+    await postReviewLike(reviewId);
+    toastStore.success("리뷰 좋아요가 추가되었습니다.");
+  } catch (error) {
+    targetReview.likeCount = previousLikeCount;
+
+    if (error.statusCode === 401) {
+      toastStore.warning("로그인이 필요합니다.");
+    } else if (error.statusCode === 409) {
+      toastStore.info("이미 좋아요 처리되었습니다.");
+    } else if (error.statusCode === 500) {
+      toastStore.error("서버 내부 오류가 발생했습니다.");
+    } else {
+      toastStore.error("리뷰 좋아요 처리에 실패했습니다.");
+    }
+  } finally {
+    const nextPendingLikes = new Set(pendingReviewLikes.value);
+    nextPendingLikes.delete(reviewId);
+    pendingReviewLikes.value = nextPendingLikes;
+  }
 }
 
 watch(
   () => route.query.id,
-  (id) => loadPlaceDetails(String(id ?? '1')),
+  (id) => loadPlaceDetails(String(id ?? "1")),
   { immediate: true },
-)
+);
 </script>
 
 <template>
   <main class="detail-view">
-    <p v-if="isLoading" class="state-message">여행지 정보를 불러오는 중입니다.</p>
+    <section v-if="isLoading" class="detail-skeleton" aria-label="여행지 상세 로딩 중">
+      <span class="detail-skeleton-hero"></span>
+      <div class="detail-skeleton-content">
+        <article class="detail-skeleton-card">
+          <i></i>
+          <i></i>
+          <i></i>
+          <i></i>
+        </article>
+        <article v-for="index in 2" :key="index" class="review-skeleton-card">
+          <span></span>
+          <div>
+            <i></i>
+            <i></i>
+          </div>
+        </article>
+      </div>
+    </section>
+    <p v-else-if="errorMessage" class="state-message">{{ errorMessage }}</p>
 
     <template v-else-if="place">
       <figure class="hero-image">
-        <img :src="place.image" :alt="place.title" />
+        <img v-if="place.image" :src="place.image" :alt="place.title" />
       </figure>
 
       <div class="detail-content">
@@ -122,7 +173,14 @@ watch(
 
           <div class="title-row">
             <h2>{{ place.title }}</h2>
-            <span><b>★</b> {{ place.rating }}</span>
+            <span class="place-like-count" aria-label="좋아요 수">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path
+                  d="M20.8 4.6c-1.9-1.8-4.9-1.7-6.7.2L12 7l-2.1-2.2C8.1 2.9 5.1 2.8 3.2 4.6 1.1 6.6 1 9.9 3 12l9 8.7 9-8.7c2-2.1 1.9-5.4-.2-7.4Z"
+                />
+              </svg>
+              {{ place.likeCount }}
+            </span>
           </div>
 
           <section class="description-section">
@@ -139,7 +197,7 @@ watch(
               <span>
                 <strong>주소</strong>
                 {{ place.address }}
-                <small>{{ place.addressDetail }}</small>
+                <small v-if="place.addressDetail">{{ place.addressDetail }}</small>
               </span>
             </div>
             <div>
@@ -169,15 +227,36 @@ watch(
         <section class="review-section">
           <header class="review-heading">
             <h2>
-              리뷰 <span>({{ place.reviewCount }})</span>
+              리뷰 <span>({{ reviewCountLabel }})</span>
             </h2>
           </header>
 
-          <article v-for="review in place.reviews" :key="review.id" class="review-card">
+          <p v-if="!reviews.length" class="empty-review-message">등록된 리뷰가 없습니다.</p>
+
+          <article v-for="review in reviews" :key="review.id" class="review-card">
             <header>
               <span class="review-avatar">{{ review.avatar }}</span>
-              <strong>{{ review.author }}</strong>
-              <span class="review-rating">{{ '★'.repeat(review.rating) }}</span>
+              <div class="review-meta">
+                <strong>{{ review.author }}</strong>
+                <time v-if="review.createdAt" :datetime="review.createdAtDateTime">{{
+                  review.createdAt
+                }}</time>
+              </div>
+              <div class="review-like-actions" aria-label="리뷰 좋아요">
+                <span class="review-like-count">{{ review.likeCount }}</span>
+                <button
+                  class="review-like-button"
+                  type="button"
+                  :disabled="pendingReviewLikes.has(review.id)"
+                  @click="addReviewLike(review.id)"
+                >
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path
+                      d="M20.8 4.6c-1.9-1.8-4.9-1.7-6.7.2L12 7l-2.1-2.2C8.1 2.9 5.1 2.8 3.2 4.6 1.1 6.6 1 9.9 3 12l9 8.7 9-8.7c2-2.1 1.9-5.4-.2-7.4Z"
+                    />
+                  </svg>
+                </button>
+              </div>
             </header>
             <p>{{ review.content }}</p>
           </article>
@@ -187,7 +266,7 @@ watch(
           <svg viewBox="0 0 24 24" aria-hidden="true">
             <path d="M5 4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v18l-7-4-7 4V4Z" />
           </svg>
-          즐겨찾기에 추가
+          즐겨찾기 추가
         </button>
       </div>
     </template>
@@ -207,12 +286,137 @@ watch(
   text-align: center;
 }
 
+.detail-skeleton {
+  animation: detailIn 0.22s ease both;
+}
+
+.detail-skeleton-hero {
+  display: block;
+  width: min(100%, 48rem);
+  aspect-ratio: 16 / 8;
+  margin: 0 auto;
+  background: rgba(255, 255, 255, 0.075);
+}
+
+.detail-skeleton-content {
+  display: grid;
+  gap: 0.75rem;
+  width: min(calc(100% - 1.25rem), 38rem);
+  margin: 1rem auto 0;
+}
+
+.detail-skeleton-card,
+.review-skeleton-card {
+  background: rgba(9, 13, 20, 0.92);
+  border: 1px solid #24303f;
+  border-radius: 0.75rem;
+  box-shadow: 0 0.75rem 2rem rgba(0, 0, 0, 0.15);
+}
+
+.detail-skeleton-card {
+  display: grid;
+  gap: 0.65rem;
+  padding: 1rem;
+}
+
+.detail-skeleton-card i,
+.review-skeleton-card span,
+.review-skeleton-card i,
+.detail-skeleton-hero {
+  position: relative;
+  overflow: hidden;
+}
+
+.detail-skeleton-card i,
+.review-skeleton-card i {
+  height: 0.75rem;
+  background: rgba(255, 255, 255, 0.075);
+  border-radius: 0.45rem;
+}
+
+.detail-skeleton-card i:nth-child(1) {
+  width: 34%;
+}
+
+.detail-skeleton-card i:nth-child(2) {
+  width: 72%;
+  height: 1rem;
+}
+
+.detail-skeleton-card i:nth-child(3) {
+  width: 100%;
+}
+
+.detail-skeleton-card i:nth-child(4) {
+  width: 58%;
+}
+
+.review-skeleton-card {
+  display: grid;
+  grid-template-columns: 1.65rem minmax(0, 1fr);
+  gap: 0.65rem;
+  padding: 0.8rem;
+}
+
+.review-skeleton-card span {
+  width: 1.45rem;
+  height: 1.45rem;
+  background: rgba(255, 255, 255, 0.075);
+  border-radius: 50%;
+}
+
+.review-skeleton-card div {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.review-skeleton-card i:first-child {
+  width: 42%;
+}
+
+.review-skeleton-card i:last-child {
+  width: 88%;
+}
+
+.detail-skeleton-hero::after,
+.detail-skeleton-card i::after,
+.review-skeleton-card span::after,
+.review-skeleton-card i::after {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.08), transparent);
+  content: '';
+  animation: skeletonSweep 1.25s ease-in-out infinite;
+}
+
+@keyframes skeletonSweep {
+  from {
+    transform: translateX(-100%);
+  }
+
+  to {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes detailIn {
+  from {
+    opacity: 0;
+    transform: translateY(0.35rem);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .hero-image {
   width: min(100%, 48rem);
   aspect-ratio: 16 / 8;
   margin: 0 auto;
   overflow: hidden;
-  background: #0e1826;
+  background: linear-gradient(135deg, rgba(70, 103, 130, 0.2), rgba(12, 22, 35, 0.06)), #0e1826;
 }
 
 .hero-image img {
@@ -260,18 +464,29 @@ watch(
 }
 
 .title-row h2 {
+  min-width: 0;
   font-size: 1.3rem;
   font-weight: 700;
 }
 
-.title-row span {
+.place-like-count,
+.review-like-button {
+  display: inline-flex;
   flex: 0 0 auto;
-  color: #dce5ee;
-  font-size: 0.82rem;
+  align-items: center;
+  gap: 0.3rem;
 }
 
-.title-row b {
-  color: #f8dc61;
+.place-like-count {
+  color: #e8f8ff;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.place-like-count svg,
+.review-like-button svg {
+  width: 0.95rem;
+  fill: #ff6f9f;
 }
 
 .description-section {
@@ -351,9 +566,11 @@ watch(
   font-weight: 400;
 }
 
-.review-heading button {
-  color: #8cddff;
-  font-size: 0.68rem;
+.empty-review-message {
+  padding: 1rem;
+  color: #91a0b4;
+  font-size: 0.82rem;
+  text-align: center;
 }
 
 .review-card {
@@ -364,11 +581,12 @@ watch(
 .review-card header {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.6rem;
 }
 
 .review-avatar {
   display: grid;
+  flex: 0 0 auto;
   width: 1.45rem;
   height: 1.45rem;
   place-items: center;
@@ -378,16 +596,77 @@ watch(
   font-size: 0.7rem;
 }
 
-.review-card strong {
-  font-size: 0.75rem;
-  font-weight: 500;
+.review-meta {
+  flex: 1;
+  min-width: 0;
 }
 
-.review-rating {
+.review-meta strong {
+  display: block;
+  overflow: hidden;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.review-meta time {
+  display: block;
+  margin-top: 0.2rem;
+  color: #77869a;
+  font-size: 0.66rem;
+}
+
+.review-like-actions {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.45rem;
   margin-left: auto;
-  color: #8cddff;
+}
+
+.review-like-count {
+  color: #e8f8ff;
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.review-like-button {
+  min-height: 2rem;
+  padding: 0 0.7rem;
+  color: #071321;
+  background: #8cddff;
+  border: 1px solid rgba(140, 221, 255, 0.8);
+  border-radius: 999px;
+  box-shadow: 0 0.35rem 0.9rem rgba(72, 207, 255, 0.22);
   font-size: 0.72rem;
-  letter-spacing: 0.05em;
+  font-weight: 700;
+  transition:
+    background 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+
+.review-like-button svg {
+  width: 0.82rem;
+  fill: #071321;
+}
+
+.review-like-button:hover {
+  background: #a8e7ff;
+  box-shadow: 0 0.45rem 1rem rgba(72, 207, 255, 0.3);
+}
+
+.review-like-button:active {
+  transform: scale(0.97);
+}
+
+.review-like-button:disabled {
+  cursor: wait;
+  opacity: 0.68;
+  transform: none;
 }
 
 .review-card p {
