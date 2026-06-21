@@ -267,6 +267,14 @@ function goToPlaceDetail(placeId) {
   router.push({ name: 'detail', query: { id: placeId } })
 }
 
+function goToCourseEdit() {
+  const courseId = courseDetail.value?.id ?? selectedCourse.value?.id
+
+  if (!courseId) return
+
+  router.push({ name: 'course-edit', query: { courseId } })
+}
+
 onMounted(() => {
   loadCourses()
 })
@@ -405,6 +413,10 @@ onBeforeUnmount(() => {
               <span>저장 {{ courseDetail.createdAt }}</span>
               <span v-if="courseDetail.updatedAt">수정 {{ courseDetail.updatedAt }}</span>
             </footer>
+
+            <button type="button" class="course-edit-button" @click="goToCourseEdit">
+              코스 수정하기
+            </button>
           </template>
         </section>
       </div>
@@ -903,6 +915,27 @@ onBeforeUnmount(() => {
   color: #8796aa;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
   font-size: 0.7rem;
+}
+
+.course-edit-button {
+  display: grid;
+  width: 100%;
+  min-height: 3rem;
+  margin-top: 1rem;
+  color: #071321;
+  background: #8cddff;
+  border: 0;
+  border-radius: 0.72rem;
+  box-shadow: 0 0.65rem 1.5rem rgba(72, 207, 255, 0.2);
+  font-size: 0.9rem;
+  font-weight: 900;
+  place-items: center;
+}
+
+.course-edit-button:hover,
+.course-edit-button:focus-visible {
+  background: #a2e4ff;
+  outline: none;
 }
 
 .empty-state {

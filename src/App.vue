@@ -7,12 +7,13 @@ import Header from './components/Header.vue'
 import ToastContainer from './components/ToastContainer.vue'
 
 const route = useRoute()
+const showHeader = computed(() => !route.meta.hideHeader)
 const showBottomBar = computed(() => !route.meta.hideBottomBar)
 const pageTransitionName = computed(() => (route.name === 'ai' ? '' : 'page'))
 </script>
 
 <template>
-  <Header />
+  <Header v-if="showHeader" />
   <RouterView v-slot="{ Component, route: currentRoute }">
     <Transition :name="pageTransitionName" mode="out-in">
       <component :is="Component" :key="currentRoute.fullPath" />

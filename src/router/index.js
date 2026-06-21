@@ -126,6 +126,17 @@ const router = createRouter({
       },
     },
     {
+      path: '/course-edit',
+      name: 'course-edit',
+      component: () => import('../views/CourseEditView.vue'),
+      meta: {
+        headerTitle: '코스 수정',
+        showBackButton: true,
+        hideBottomBar: true,
+        requiresAuth: true,
+      },
+    },
+    {
       path: '/withdraw',
       name: 'withdraw',
       component: () => import('../views/WithdrawView.vue'),
