@@ -46,7 +46,7 @@ function requestLogin(credentials) {
 </script>
 
 <template>
-  <main class="login-test-view">
+  <main class="login-view">
     <section class="login-card">
       <header>
         <p class="eyebrow">MSW Login Test</p>
@@ -110,7 +110,7 @@ function requestLogin(credentials) {
 </template>
 
 <style scoped>
-.login-test-view {
+.login-view {
   display: grid;
   min-height: calc(100vh - 8rem);
   padding: 2rem 1rem;

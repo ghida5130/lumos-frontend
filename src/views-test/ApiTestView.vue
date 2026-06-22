@@ -1,46 +1,46 @@
 <script setup>
-import { computed } from 'vue'
-import { useMutation, useQuery } from '@tanstack/vue-query'
+import { computed } from "vue";
+import { useMutation, useQuery } from "@tanstack/vue-query";
 import {
   getApiTestSuccess,
   getAuthErrorTest,
   getServerErrorTest,
   postDuplicateEmailTest,
-} from '@/api/test'
-import { useAuthStore } from '@/stores/auth'
+} from "@/api/test";
+import { useAuthStore } from "@/stores/auth";
 
-const authStore = useAuthStore()
+const authStore = useAuthStore();
 
 const successQuery = useQuery({
-  queryKey: ['api-test', 'success'],
+  queryKey: ["api-test", "success"],
   queryFn: getApiTestSuccess,
   enabled: false,
   meta: {
-    errorMode: 'local',
+    errorMode: "local",
   },
-})
+});
 
 const duplicateEmailMutation = useMutation({
   mutationFn: postDuplicateEmailTest,
   meta: {
-    errorMode: 'local',
+    errorMode: "local",
   },
-})
+});
 
 const serverErrorMutation = useMutation({
   mutationFn: getServerErrorTest,
-})
+});
 
 const authErrorMutation = useMutation({
   mutationFn: getAuthErrorTest,
-})
+});
 
-const successResult = computed(() => JSON.stringify(successQuery.data.value, null, 2))
+const successResult = computed(() => JSON.stringify(successQuery.data.value, null, 2));
 const localErrorResult = computed(() => {
-  const error = duplicateEmailMutation.error.value
+  const error = duplicateEmailMutation.error.value;
 
   if (!error) {
-    return ''
+    return "";
   }
 
   return JSON.stringify(
@@ -53,24 +53,24 @@ const localErrorResult = computed(() => {
     },
     null,
     2,
-  )
-})
+  );
+});
 
 function runSuccessTest() {
-  successQuery.refetch()
+  successQuery.refetch();
 }
 
 function runLocalErrorTest() {
-  duplicateEmailMutation.mutate('duplicate@example.com')
+  duplicateEmailMutation.mutate("duplicate@example.com");
 }
 
 function runServerErrorTest() {
-  serverErrorMutation.mutate()
+  serverErrorMutation.mutate();
 }
 
 function runAuthErrorTest() {
-  authStore.setAccessToken('expired-test-access-token')
-  authErrorMutation.mutate()
+  authStore.setAccessToken("expired-test-access-token");
+  authErrorMutation.mutate();
 }
 </script>
 
@@ -88,7 +88,7 @@ function runAuthErrorTest() {
         <p>TanStack Query가 공통 응답의 data 내부 값을 전달받는지 확인합니다.</p>
       </div>
       <button type="button" :disabled="successQuery.isFetching.value" @click="runSuccessTest">
-        {{ successQuery.isFetching.value ? '요청 중...' : '성공 요청 실행' }}
+        {{ successQuery.isFetching.value ? "요청 중..." : "성공 요청 실행" }}
       </button>
       <pre v-if="successResult">{{ successResult }}</pre>
     </section>
@@ -133,7 +133,7 @@ function runAuthErrorTest() {
       <button type="button" :disabled="authErrorMutation.isPending.value" @click="runAuthErrorTest">
         인증 오류 실행
       </button>
-      <p class="token-state">현재 메모리 토큰: {{ authStore.accessToken ? '있음' : '없음' }}</p>
+      <p class="token-state">현재 메모리 토큰: {{ authStore.accessToken ? "있음" : "없음" }}</p>
     </section>
   </main>
 </template>

@@ -16,9 +16,20 @@ const logoutMutation = useMutation({
   meta: {
     errorMode: 'local',
   },
+  onMutate: () => {
+    authStore.setAuthStatus('로그아웃 처리 중입니다.')
+    toastStore.info('로그아웃 처리 중입니다.', { duration: 1800 })
+  },
   onSuccess: () => {
     clearAuthSession()
-    router.replace('/')
+    toastStore.success('로그아웃되었습니다.')
+    router.replace('/').finally(() => {
+      authStore.clearAuthStatus()
+    })
+  },
+  onError: () => {
+    authStore.clearAuthStatus()
+    toastStore.error('로그아웃에 실패했습니다.')
   },
 })
 
@@ -79,7 +90,9 @@ const menuGroups = [
             :disabled="item.id === 'logout' && logoutMutation.isPending.value"
             @click="item.action?.()"
           >
-            <span>{{ item.label }}</span>
+            <span>{{
+              item.id === 'logout' && logoutMutation.isPending.value ? '로그아웃 중...' : item.label
+            }}</span>
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path d="m9 18 6-6-6-6" />
             </svg>
@@ -88,6 +101,7 @@ const menuGroups = [
       </ul>
 
       <p v-if="logoutErrorMessage" class="logout-error">{{ logoutErrorMessage }}</p>
+      <p v-if="logoutMutation.isPending.value" class="logout-status">로그아웃 처리 중입니다.</p>
     </nav>
 
   </main>
@@ -113,6 +127,12 @@ const menuGroups = [
 
 .logout-error {
   color: #ffbaba;
+  font-size: 0.78rem;
+  text-align: center;
+}
+
+.logout-status {
+  color: #bdebe3;
   font-size: 0.78rem;
   text-align: center;
 }

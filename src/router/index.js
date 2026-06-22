@@ -1,228 +1,244 @@
-import { createRouter, createWebHistory } from 'vue-router'
-import HomeView from '../views/HomeView.vue'
-import { refreshAccessToken } from '../services/authSession'
-import { useAuthStore } from '../stores/auth'
+import { createRouter, createWebHistory } from "vue-router";
+import HomeView from "../views/HomeView.vue";
+import { refreshAccessToken } from "../services/authSession";
+import { useAuthStore } from "../stores/auth";
+import { useToastStore } from "../stores/toast";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   scrollBehavior() {
-    return { top: 0, left: 0 }
+    return { top: 0, left: 0 };
   },
   routes: [
     {
-      path: '/',
-      name: 'home',
+      path: "/",
+      name: "home",
       component: HomeView,
       meta: {
-        headerTitle: 'Lumos',
+        headerTitle: "Lumos",
         showBackButton: false,
       },
     },
     {
-      path: '/about',
-      name: 'about',
-      // route level code-splitting
-      // this generates a separate chunk (About.[hash].js) for this route
-      // which is lazy-loaded when the route is visited.
-      component: () => import('../views/AboutView.vue'),
-    },
-    {
-      path: '/list',
-      name: 'list',
-      // route level code-splitting
-      // this generates a separate chunk (About.[hash].js) for this route
-      // which is lazy-loaded when the route is visited.
-      component: () => import('../views/ListView.vue'),
+      path: "/list",
+      name: "list",
+      component: () => import("../views/ListView.vue"),
       meta: {
-        headerTitle: '여행지',
+        headerTitle: "여행지",
       },
     },
     {
-      path: '/login',
-      alias: '/test',
-      name: 'login',
-      // route level code-splitting
-      // this generates a separate chunk (About.[hash].js) for this route
-      // which is lazy-loaded when the route is visited.
-      component: () => import('../views/LoginTestPage.vue'),
+      path: "/login",
+      alias: "/login",
+      name: "login",
+      component: () => import("../views/LoginView.vue"),
       meta: {
-        headerTitle: '로그인',
+        headerTitle: "로그인",
         showBackButton: false,
       },
     },
     {
-      path: '/ai',
-      name: 'ai',
-      // route level code-splitting
-      // this generates a separate chunk (About.[hash].js) for this route
-      // which is lazy-loaded when the route is visited.
-      component: () => import('../views/AIView.vue'),
+      path: "/login-test",
+      alias: "/login-test",
+      name: "login-test",
+      component: () => import("../views-test/LoginTestPage.vue"),
       meta: {
-        headerTitle: 'AI',
+        headerTitle: "로그인 테스트",
+        showBackButton: false,
+      },
+    },
+    {
+      path: "/ai",
+      name: "ai",
+      component: () => import("../views/AIView.vue"),
+      meta: {
+        headerTitle: "AI",
         showBackButton: true,
         hideBottomBar: true,
         requiresAuth: true,
       },
     },
     {
-      path: '/feed',
-      name: 'feed',
-      // route level code-splitting
-      // this generates a separate chunk (About.[hash].js) for this route
-      // which is lazy-loaded when the route is visited.
-      component: () => import('../views/FeedView.vue'),
+      path: "/feed",
+      name: "feed",
+      component: () => import("../views/FeedView.vue"),
       meta: {
-        headerTitle: '피드',
+        headerTitle: "피드",
       },
     },
     {
-      path: '/mypage',
-      name: 'mypage',
-      component: () => import('../views/MyPageView.vue'),
+      path: "/mypage",
+      name: "mypage",
+      component: () => import("../views/MyPageView.vue"),
       meta: {
-        headerTitle: '마이페이지',
+        headerTitle: "마이페이지",
         requiresAuth: true,
       },
     },
     {
-      path: '/detail',
-      name: 'detail',
-      component: () => import('../views/DetailView.vue'),
+      path: "/detail",
+      name: "detail",
+      component: () => import("../views/DetailView.vue"),
       meta: {
-        headerTitle: '여행지 상세 정보',
+        headerTitle: "여행지 상세 정보",
         showBackButton: true,
       },
     },
     {
-      path: '/place-map',
-      name: 'place-map',
-      component: () => import('../views/MapView.vue'),
+      path: "/place-map",
+      name: "place-map",
+      component: () => import("../views/MapView.vue"),
       props: () => ({
         places: window.history.state?.places ?? [],
       }),
       meta: {
-        headerTitle: '지도에서 확인하기',
+        headerTitle: "지도에서 확인하기",
         showBackButton: true,
         hideBottomBar: true,
       },
     },
     {
-      path: '/favorites',
-      name: 'favorites',
-      component: () => import('../views/FavoritePlacesView.vue'),
+      path: "/favorites",
+      name: "favorites",
+      component: () => import("../views/FavoritePlacesView.vue"),
       meta: {
-        headerTitle: '여행지 즐겨찾기',
+        headerTitle: "여행지 즐겨찾기",
         showBackButton: true,
       },
     },
     {
-      path: '/saved-courses',
-      name: 'saved-courses',
-      component: () => import('../views/SavedCoursesView.vue'),
+      path: "/saved-courses",
+      name: "saved-courses",
+      component: () => import("../views/SavedCoursesView.vue"),
       meta: {
-        headerTitle: '저장한 여행 경로',
+        headerTitle: "저장한 여행 경로",
         showBackButton: true,
         requiresAuth: true,
       },
     },
     {
-      path: '/course-edit',
-      name: 'course-edit',
-      component: () => import('../views/CourseEditView.vue'),
+      path: "/course-edit",
+      name: "course-edit",
+      component: () => import("../views/CourseEditView.vue"),
       meta: {
-        headerTitle: '코스 수정',
+        headerTitle: "코스 수정",
         showBackButton: true,
         hideBottomBar: true,
         requiresAuth: true,
       },
     },
     {
-      path: '/withdraw',
-      name: 'withdraw',
-      component: () => import('../views/WithdrawView.vue'),
+      path: "/withdraw",
+      name: "withdraw",
+      component: () => import("../views/WithdrawView.vue"),
       meta: {
-        headerTitle: '회원 탈퇴',
+        headerTitle: "회원 탈퇴",
         showBackButton: true,
         requiresAuth: true,
       },
     },
     {
-      path: '/edit-profile',
-      name: 'edit-profile',
-      component: () => import('../views/EditProfileView.vue'),
+      path: "/edit-profile",
+      name: "edit-profile",
+      component: () => import("../views/EditProfileView.vue"),
       meta: {
-        headerTitle: '프로필 수정',
+        headerTitle: "프로필 수정",
         showBackButton: true,
         requiresAuth: true,
       },
     },
     {
-      path: '/error',
-      name: 'error',
-      component: () => import('../views/ErrorView.vue'),
+      path: "/error",
+      name: "error",
+      component: () => import("../views/ErrorView.vue"),
       meta: {
-        headerTitle: '오류',
+        headerTitle: "오류",
         showBackButton: true,
         hideBottomBar: true,
       },
     },
     {
-      path: '/api-test',
-      name: 'api-test',
-      component: () => import('../views/ApiTestView.vue'),
+      path: "/api-test",
+      name: "api-test",
+      component: () => import("../views-test/ApiTestView.vue"),
       meta: {
-        headerTitle: 'API 테스트',
+        headerTitle: "API 테스트",
         showBackButton: true,
         hideBottomBar: true,
       },
     },
     {
-      path: '/path-api-test',
-      name: 'path-api-test',
-      component: () => import('../views/PathApiTestView.vue'),
+      path: "/path-api-test",
+      name: "path-api-test",
+      component: () => import("../views-test/PathApiTestView.vue"),
       meta: {
-        headerTitle: 'API 경로 테스트',
+        headerTitle: "API 경로 테스트",
         showBackButton: true,
         hideBottomBar: true,
       },
     },
     {
-      path: '/multipart-api-test',
-      name: 'multipart-api-test',
-      component: () => import('../views/MultipartApiTestView.vue'),
+      path: "/multipart-api-test",
+      name: "multipart-api-test",
+      component: () => import("../views-test/MultipartApiTestView.vue"),
       meta: {
-        headerTitle: 'Multipart API 테스트',
+        headerTitle: "Multipart API 테스트",
         showBackButton: true,
         hideBottomBar: true,
       },
     },
   ],
-})
+});
 
+// 로그인이 필요한 페이지 관리
+// 페이지 지정은 각 라우팅 meta에서 관리
 router.beforeEach(async (to) => {
-  const requiresAuth = to.matched.some((route) => route.meta.requiresAuth)
+  const requiresAuth = to.matched.some((route) => route.meta.requiresAuth);
+  const authStore = useAuthStore();
 
   if (!requiresAuth) {
-    return true
+    authStore.clearAuthStatus();
+    return true;
   }
-
-  const authStore = useAuthStore()
 
   if (authStore.isLoggedIn) {
-    return true
+    authStore.clearAuthStatus();
+    return true;
   }
+
+  const toastStore = useToastStore();
+  authStore.setAuthStatus("로그인 상태를 확인하는 중입니다.");
+  toastStore.info("로그인 상태를 확인하고 있습니다.", { duration: 1800 });
 
   try {
-    await refreshAccessToken()
-    return true
+    await refreshAccessToken();
+    authStore.clearAuthStatus();
+    toastStore.success("로그인 상태가 확인되었습니다.", { duration: 1800 });
+    return true;
   } catch {
-    // Refresh Token까지 사용할 수 없을 때 로그인 페이지로 이동한다.
+    // Refresh Token까지 사용할 수 없을 때 로그인 페이지로 이동
   }
+
+  authStore.setAuthStatus("로그인 페이지로 이동하는 중입니다.");
+  toastStore.warning("로그인이 필요합니다. 로그인 페이지로 이동합니다.", { duration: 2200 });
 
   return {
-    name: 'login',
+    name: "login",
     query: { redirect: to.fullPath },
-  }
-})
+  };
+});
 
-export default router
+router.afterEach((to) => {
+  const authStore = useAuthStore();
+
+  if (to.name === "login" && authStore.authStatusMessage === "로그인 페이지로 이동하는 중입니다.") {
+    window.setTimeout(() => {
+      authStore.clearAuthStatus();
+    }, 500);
+    return;
+  }
+
+  authStore.clearAuthStatus();
+});
+
+export default router;

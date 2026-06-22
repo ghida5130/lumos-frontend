@@ -191,10 +191,11 @@ export const authHandlers = [
           expiresIn: 3600,
           user: {
             userId: 1,
-            email: "user@example.com",
-            nickname: "test",
+            email: "user-pinia@example.com",
+            nickname: "test-pinia",
             role: "USER",
-            profileImageUrl: "https://example.com/profile/default.png",
+            profileImageUrl:
+              "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTnSA1zygA3rubv-VK0DrVcQ02Po79kJhXo_A&s",
           },
         },
         error: null,

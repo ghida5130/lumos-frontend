@@ -1,13 +1,3 @@
-<template>
-  <router-link :to="link" class="bottom-bar-button" :class="{ compact }">
-    <img :src="imagePath" :alt="icon" class="icon" />
-
-    <span class="label">
-      {{ icon }}
-    </span>
-  </router-link>
-</template>
-
 <script setup lang="ts">
 defineProps({
   icon: {
@@ -26,8 +16,18 @@ defineProps({
     type: Boolean,
     default: false,
   },
-})
+});
 </script>
+
+<template>
+  <router-link :to="link" class="bottom-bar-button" :class="{ compact }">
+    <img :src="imagePath" :alt="icon" class="icon" />
+
+    <span class="label">
+      {{ icon }}
+    </span>
+  </router-link>
+</template>
 
 <style scoped>
 .bottom-bar-button {

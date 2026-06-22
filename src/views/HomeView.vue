@@ -16,6 +16,7 @@ import TopCarousel from "@/components/main/TopCarousel.vue";
     <ContentCarousel />
     <ContentCarousel />
     <ContentCarousel />
+    <RouterLink to="/login-test">로그인 테스트 페이지</RouterLink>
   </main>
 </template>
 
