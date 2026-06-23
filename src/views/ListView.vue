@@ -2,6 +2,7 @@
 import PlaceItem from "@/components/list/PlaceItem.vue";
 import SearchPanel from "@/components/list/SearchPanel.vue";
 import { getPlaceList } from "@/api/place";
+import { getPlaceImage } from "@/utils/placeImage";
 import { computed, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 
@@ -31,7 +32,7 @@ const mappedPlaces = computed(() =>
     category: place.category,
     likeCount: place.likeCount,
     tags: place.tags ?? [],
-    image: place.imageUrl,
+    image: getPlaceImage(place.imageUrl, place.category, place.placeId),
     latitude: place.latitude,
     longitude: place.longitude,
   })),

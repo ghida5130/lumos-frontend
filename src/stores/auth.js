@@ -3,6 +3,7 @@ import { defineStore } from 'pinia'
 
 export const useAuthStore = defineStore('auth', () => {
   const accessToken = ref('')
+  const userId = ref(null)
   const email = ref('')
   const nickname = ref('')
   const profileImageUrl = ref('')
@@ -15,22 +16,26 @@ export const useAuthStore = defineStore('auth', () => {
     accessToken.value = token ?? ''
   }
 
+  function getUserId(user = {}) {
+    return user.userId ?? user.id ?? user.memberId ?? null
+  }
+
   function setUser(user = {}) {
+    userId.value = getUserId(user)
     email.value = user.email ?? ''
     nickname.value = user.nickname ?? ''
     profileImageUrl.value = user.profileImageUrl ?? ''
   }
 
-  function setAuth({ token, user } = {}) {
-    setAccessToken(token)
+  function setAuth({ token, accessToken: nextAccessToken, user, ...userFields } = {}) {
+    setAccessToken(token ?? nextAccessToken)
 
-    if (user) {
-      setUser(user)
-    }
+    setUser(user ?? userFields)
   }
 
   function clearAuth() {
     setAccessToken('')
+    userId.value = null
     email.value = ''
     nickname.value = ''
     profileImageUrl.value = ''
@@ -46,6 +51,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   return {
     accessToken,
+    userId,
     email,
     nickname,
     profileImageUrl,

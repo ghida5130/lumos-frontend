@@ -1,57 +1,57 @@
 <script setup>
-import { computed } from 'vue'
-import { useMutation } from '@tanstack/vue-query'
-import { RouterLink, useRouter } from 'vue-router'
-import { postLogout } from '@/api/auth'
-import { clearAuthSession } from '@/services/authSession'
-import { useAuthStore } from '@/stores/auth'
-import { useToastStore } from '@/stores/toast'
+import { computed } from "vue";
+import { useMutation } from "@tanstack/vue-query";
+import { RouterLink, useRouter } from "vue-router";
+import { postLogout } from "@/api/auth";
+import { clearAuthSession } from "@/services/authSession";
+import { useAuthStore } from "@/stores/auth";
+import { useToastStore } from "@/stores/toast";
 
-const router = useRouter()
-const authStore = useAuthStore()
-const toastStore = useToastStore()
+const router = useRouter();
+const authStore = useAuthStore();
+const toastStore = useToastStore();
 
 const logoutMutation = useMutation({
   mutationFn: postLogout,
   meta: {
-    errorMode: 'local',
+    errorMode: "local",
   },
   onMutate: () => {
-    authStore.setAuthStatus('로그아웃 처리 중입니다.')
-    toastStore.info('로그아웃 처리 중입니다.', { duration: 1800 })
+    authStore.setAuthStatus("로그아웃 처리 중입니다.");
+    toastStore.info("로그아웃 처리 중입니다.", { duration: 1800 });
   },
   onSuccess: () => {
-    clearAuthSession()
-    toastStore.success('로그아웃되었습니다.')
-    router.replace('/').finally(() => {
-      authStore.clearAuthStatus()
-    })
+    clearAuthSession();
+    toastStore.success("로그아웃되었습니다.");
+    router.replace("/").finally(() => {
+      authStore.clearAuthStatus();
+    });
   },
   onError: () => {
-    authStore.clearAuthStatus()
-    toastStore.error('로그아웃에 실패했습니다.')
+    authStore.clearAuthStatus();
+    toastStore.error("로그아웃에 실패했습니다.");
   },
-})
+});
 
-const logoutErrorMessage = computed(() => logoutMutation.error.value?.message ?? '')
-const logout = () => logoutMutation.mutate()
+const logoutErrorMessage = computed(() => logoutMutation.error.value?.message ?? "");
+const logout = () => logoutMutation.mutate();
 const showToastTest = () => {
-  toastStore.success('토스트가 정상적으로 표시됩니다.')
-}
+  toastStore.success("토스트가 정상적으로 표시됩니다.");
+};
 
 const menuGroups = [
   [
-    { id: 'saved-routes', label: '저장한 여행 경로', routeName: 'saved-courses' },
-    { id: 'favorite-places', label: '여행지 즐겨찾기', routeName: 'favorites' },
+    { id: "saved-routes", label: "저장한 여행 경로", routeName: "saved-courses" },
+    { id: "favorite-places", label: "여행지 즐겨찾기", routeName: "favorites" },
   ],
   [
-    { id: 'settings', label: '설정' },
-    { id: 'edit-profile', label: '프로필 수정하기', routeName: 'edit-profile' },
-    { id: 'notifications', label: '알림 설정' },
-    { id: 'withdraw', label: '회원 탈퇴', routeName: 'withdraw' },
-    { id: 'logout', label: '로그아웃', action: logout },
+    { id: "settings", label: "설정" },
+    { id: "edit-profile", label: "프로필 수정하기", routeName: "edit-profile" },
+    { id: "notifications", label: "알림 설정" },
+    { id: "withdraw", label: "회원 탈퇴", routeName: "withdraw" },
+    { id: "logout", label: "로그아웃", action: logout },
   ],
-]
+];
 </script>
 
 <template>
@@ -59,18 +59,17 @@ const menuGroups = [
     <section class="profile-section">
       <div class="profile-summary">
         <div class="profile-avatar" aria-hidden="true">
-          <svg viewBox="0 0 24 24">
-            <circle cx="12" cy="8" r="3.5" />
-            <path d="M5.5 20c.7-4 3-6 6.5-6s5.8 2 6.5 6" />
-          </svg>
+          <img v-if="authStore.profileImageUrl" :src="authStore.profileImageUrl" alt="" />
         </div>
         <div class="profile-copy">
-          <h2>{{ authStore.nickname || '이름' }}</h2>
+          <h2>{{ authStore.nickname || "이름" }}</h2>
           <p>{{ authStore.email }}</p>
         </div>
       </div>
 
-      <RouterLink class="edit-profile-button" :to="{ name: 'edit-profile' }">프로필 수정하기</RouterLink>
+      <RouterLink class="edit-profile-button" :to="{ name: 'edit-profile' }"
+        >프로필 수정하기</RouterLink
+      >
       <button class="toast-test-button" type="button" @click="showToastTest">토스트 테스트</button>
     </section>
 
@@ -91,7 +90,7 @@ const menuGroups = [
             @click="item.action?.()"
           >
             <span>{{
-              item.id === 'logout' && logoutMutation.isPending.value ? '로그아웃 중...' : item.label
+              item.id === "logout" && logoutMutation.isPending.value ? "로그아웃 중..." : item.label
             }}</span>
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path d="m9 18 6-6-6-6" />
@@ -103,7 +102,6 @@ const menuGroups = [
       <p v-if="logoutErrorMessage" class="logout-error">{{ logoutErrorMessage }}</p>
       <p v-if="logoutMutation.isPending.value" class="logout-status">로그아웃 처리 중입니다.</p>
     </nav>
-
   </main>
 </template>
 
@@ -145,15 +143,23 @@ const menuGroups = [
 }
 
 .profile-avatar {
-  display: grid;
-  flex: 0 0 auto;
+  flex: 0 0 4.25rem;
   width: 4.25rem;
   height: 4.25rem;
+  display: grid;
   place-items: center;
   color: #dff8f2;
   background: #69b4a5;
   border-radius: 50%;
   box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.18);
+  overflow: hidden;
+}
+
+.profile-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
 }
 
 .profile-avatar svg {

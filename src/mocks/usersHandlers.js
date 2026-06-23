@@ -156,6 +156,120 @@ export const usersHandlers = [
     });
   }),
 
+  // --------------------------- 프로필 이미지 업로드 서명 발급 ---------------------------
+  http.post("*/api/users/me/profileImage/signature", async ({ request }) => {
+    await mockDelay();
+
+    const authorization = request.headers.get("Authorization");
+    const isValidAccessToken = /^Bearer mock-access-token(?:-\d+)?$/.test(authorization ?? "");
+
+    if (!isValidAccessToken) {
+      return HttpResponse.json(
+        {
+          statusCode: 401,
+          timestamp: "2026-03-18T06:51:01.242Z",
+          path: "/api/users/me/profileImage/signature",
+          message: "인증이 필요합니다.",
+          data: null,
+          error: "UNAUTHORIZED",
+        },
+        { status: 401 },
+      );
+    }
+
+    return HttpResponse.json({
+      statusCode: 200,
+      timestamp: "2026-06-18T09:19:12.560700800Z",
+      path: "/api/users/me/profileImage/signature",
+      message: "프로필 이미지 업로드 서명 발급이 완료되었습니다.",
+      data: {
+        cloudName: "dkdk1tl3f",
+        apiKey: "276789936493414",
+        timestamp: 1781774352,
+        signature: "8c407915a9274dbffb652143996d1cb3ac429385",
+        folder: "nighttrip/profiles/user_1",
+        publicId: "profile_mock",
+        uploadUrl: "https://api.cloudinary.com/v1_1/dkdk1tl3f/image/upload",
+      },
+      error: null,
+    });
+  }),
+
+  // --------------------------- Cloudinary 이미지 업로드 mock ---------------------------
+  http.post("https://api.cloudinary.com/v1_1/:cloudName/image/upload", async ({ request }) => {
+    await mockDelay();
+
+    const formData = await request.formData();
+    const folder = formData.get("folder") || "nighttrip/profiles/user_1";
+    const publicId = formData.get("public_id") || "profile_mock";
+    const fullPublicId = `${folder}/${publicId}`;
+    const version = 1781772848;
+
+    return HttpResponse.json({
+      asset_id: "mock_asset_id",
+      public_id: fullPublicId,
+      version,
+      version_id: "mock_version_id",
+      signature: "mock_cloudinary_signature",
+      width: 512,
+      height: 512,
+      format: "jpg",
+      resource_type: "image",
+      created_at: "2026-06-18T08:54:08Z",
+      tags: [],
+      bytes: 123456,
+      type: "upload",
+      etag: "mock_etag",
+      placeholder: false,
+      url: `http://res.cloudinary.com/dkdk1tl3f/image/upload/v${version}/${fullPublicId}.jpg`,
+      secure_url: `https://res.cloudinary.com/dkdk1tl3f/image/upload/v${version}/${fullPublicId}.jpg`,
+      asset_folder: folder,
+      display_name: publicId,
+      original_filename: "profile",
+      api_key: formData.get("api_key"),
+    });
+  }),
+
+  // --------------------------- 프로필 이미지 수정 ---------------------------
+  http.patch("*/api/users/me/profileImage", async ({ request }) => {
+    await mockDelay();
+
+    const authorization = request.headers.get("Authorization");
+    const isValidAccessToken = /^Bearer mock-access-token(?:-\d+)?$/.test(authorization ?? "");
+
+    if (!isValidAccessToken) {
+      return HttpResponse.json(
+        {
+          statusCode: 401,
+          timestamp: "2026-03-18T06:51:01.242Z",
+          path: "/api/users/me/profileImage",
+          message: "인증이 필요합니다.",
+          data: null,
+          error: "UNAUTHORIZED",
+        },
+        { status: 401 },
+      );
+    }
+
+    const body = await request.json();
+
+    return HttpResponse.json({
+      statusCode: 200,
+      timestamp: "2026-06-18T09:19:12.560700800Z",
+      path: "/api/users/me/profileImage",
+      message: "프로필 이미지가 변경되었습니다.",
+      data: {
+        userId: 1,
+        email: "user@example.com",
+        nickname: "닉네임",
+        role: "USER",
+        profileImageUrl: body.imageUrl,
+        updatedAt: "2026-06-18T09:19:12",
+      },
+      error: null,
+    });
+  }),
+
   // --------------------------- 내 정보 조회 ---------------------------
   http.get("*/api/users/me", async ({ request }) => {
     await mockDelay();

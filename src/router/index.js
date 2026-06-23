@@ -38,6 +38,15 @@ const router = createRouter({
       },
     },
     {
+      path: "/signup",
+      name: "signup",
+      component: () => import("../views/SignupView.vue"),
+      meta: {
+        headerTitle: "회원가입",
+        showBackButton: true,
+      },
+    },
+    {
       path: "/login-test",
       alias: "/login-test",
       name: "login-test",

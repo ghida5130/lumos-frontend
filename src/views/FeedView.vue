@@ -1,10 +1,12 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { getReviews, postReviewLike } from '@/api/review'
+import { useAuthStore } from '@/stores/auth'
 import { useToastStore } from '@/stores/toast'
 
 const PAGE_SIZE = 10
 
+const authStore = useAuthStore()
 const toastStore = useToastStore()
 
 const reviews = ref([])
@@ -75,6 +77,7 @@ async function loadReviews(targetPage = 0) {
     const result = await getReviews({
       page: targetPage,
       size: PAGE_SIZE,
+      authenticated: authStore.isLoggedIn,
     })
     const nextReviews = (result.content ?? []).map((review, index) =>
       mapReview(review, targetPage, index),
