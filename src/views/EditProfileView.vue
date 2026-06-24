@@ -101,10 +101,9 @@ async function submitProfile() {
   isSubmitting.value = true;
 
   try {
-    const formData = new FormData();
-    formData.append("nickname", normalizedNickname.value);
-
-    const updatedUser = await patchUserInfo(formData);
+    const updatedUser = await patchUserInfo({
+      nickname: normalizedNickname.value,
+    });
     authStore.setUser(updatedUser);
     toastStore.success("프로필 수정이 완료되었습니다.");
     router.replace({ name: "mypage" });

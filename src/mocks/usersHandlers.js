@@ -132,9 +132,8 @@ export const usersHandlers = [
       );
     }
 
-    const formData = await request.formData();
-    const nickname = formData.get("nickname");
-    const profileImage = formData.get("profileImage");
+    const body = await request.json();
+    const nickname = body.nickname;
 
     return HttpResponse.json({
       statusCode: 200,
@@ -146,10 +145,7 @@ export const usersHandlers = [
         email: "user@example.com",
         nickname: typeof nickname === "string" && nickname ? nickname : "로리",
         role: "USER",
-        profileImageUrl:
-          profileImage !== null && typeof profileImage !== "string"
-            ? "https://example.com/profile/profile-1.png"
-            : "https://example.com/profile/default.png",
+        profileImageUrl: "https://example.com/profile/default.png",
         updatedAt: "2026-03-18T06:51:01",
       },
       error: null,
