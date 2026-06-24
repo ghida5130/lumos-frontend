@@ -1,62 +1,39 @@
 <script setup>
-import image1 from '@/assets/images/mock/carousel/1.jpg'
-import image2 from '@/assets/images/mock/carousel/2.jpg'
-import image3 from '@/assets/images/mock/carousel/3.jpg'
-import image4 from '@/assets/images/mock/carousel/4.jpg'
-import { RouterLink } from 'vue-router'
+import { RouterLink } from "vue-router";
 
-const carouselItems = [
-  {
-    id: 1,
-    title: '광안리 해변',
-    location: '부산 수영구',
-    rating: '4.8',
-    image: image1,
-  },
-  {
-    id: 2,
-    title: '돌산대교',
-    location: '전남 여수',
-    rating: '4.7',
-    image: image2,
-  },
-  {
-    id: 3,
-    title: '한강공원',
-    location: '서울 여의도',
-    rating: '4.6',
-    image: image3,
-  },
-  {
-    id: 4,
-    title: '전주 한옥마을',
-    location: '전북 전주',
-    rating: '4.9',
-    image: image4,
-  },
-]
+defineProps({
+  data: String,
+  title: String,
+  desc: String,
+});
 </script>
 
 <template>
   <section class="content-carousel" aria-label="인기 여행지 캐러셀">
     <div class="title">
-      <h3>오늘 인기 여행지</h3>
-      <p>방문 만족도가 높은 여행 명소</p>
+      <h3>{{ title }}</h3>
+      <p>{{ desc }}</p>
     </div>
 
     <div class="carousel-scroller">
       <RouterLink
-        v-for="item in carouselItems"
+        v-for="item in data"
         :key="item.id"
-        :to="{ name: 'detail', query: { id: item.id } }"
+        :to="{ name: 'detail', query: { id: item.placeId } }"
         class="carousel-card"
       >
         <div class="card-media" aria-hidden="true">
           <img v-if="item.image" :src="item.image" :alt="item.title" />
         </div>
-
         <div class="card-overlay">
-          <span class="rating">★ {{ item.rating }}</span>
+          <span class="rating"
+            ><svg fill="rgb(255, 76, 106)" viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M20.8 4.6c-1.9-1.8-4.9-1.7-6.7.2L12 7l-2.1-2.2C8.1 2.9 5.1 2.8 3.2 4.6 1.1 6.6 1 9.9 3 12l9 8.7 9-8.7c2-2.1 1.9-5.4-.2-7.4Z"
+              />
+            </svg>
+            {{ item.rating }}</span
+          >
           <div class="card-copy">
             <h4>{{ item.title }}</h4>
             <p>{{ item.location }}</p>
@@ -72,6 +49,7 @@ const carouselItems = [
   width: 100%;
   overflow: hidden;
   margin-top: 1rem;
+  /* color: rgb(255, 76, 106); */
 }
 
 .title {
@@ -158,18 +136,29 @@ const carouselItems = [
 }
 
 .rating {
-  align-self: flex-start;
-  min-width: 3.25rem;
-  border: 1px solid rgba(255, 255, 255, 0.72);
+  align-self: flex-end;
+  display: flex;
+  /* flex-direction: column; */
+  /* min-width: 3.25rem; */
   border-radius: 999px;
-  padding: 0.28rem 0.5rem;
-  background: rgba(15, 23, 42, 0.38);
+  /* padding: 0.28rem 0.5rem; */
   color: #fff;
   font-size: 0.68rem;
   font-weight: 600;
-  line-height: 1;
+  /* line-height: 1; */
   text-align: center;
   backdrop-filter: blur(0.35rem);
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+
+  svg {
+    height: 20px;
+  }
+}
+
+.heart-area {
+  height: 20px;
 }
 
 .card-copy h4 {

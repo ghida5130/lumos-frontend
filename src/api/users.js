@@ -12,6 +12,11 @@ export async function getUserFavorites() {
   return get(privateApiClient, '/api/users/me/favorite')
 }
 
+// 현재 사용자가 작성한 리뷰 목록을 조회한다.
+export async function getUserReviews() {
+  return get(privateApiClient, '/api/users/me/review')
+}
+
 export async function getUserCourses() {
   return get(privateApiClient, '/api/users/me/course')
 }
@@ -22,6 +27,10 @@ export async function getUserCourseDetail(courseId) {
 
 export async function patchUserInfo(body) {
   return patch(privateApiClient, '/api/users/me', body)
+}
+
+export async function patchUserPassword(body) {
+  return patch(privateApiClient, '/api/users/me/password', body)
 }
 
 export async function postProfileImageSignature() {

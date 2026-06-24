@@ -24,6 +24,7 @@ const errorMessage = ref("");
 const page = ref(0);
 const totalElements = ref(0);
 const totalPages = ref(0);
+const latestPlaceRequestId = ref(0);
 
 const mappedPlaces = computed(() =>
   places.value.map((place) => ({
@@ -57,6 +58,9 @@ const resultTitle = computed(() => {
 });
 
 const loadPlaces = async (targetPage = 0) => {
+  const requestId = latestPlaceRequestId.value + 1;
+
+  latestPlaceRequestId.value = requestId;
   isLoading.value = true;
   errorMessage.value = "";
 
@@ -68,18 +72,30 @@ const loadPlaces = async (targetPage = 0) => {
       size: PAGE_SIZE,
     });
 
+    if (requestId !== latestPlaceRequestId.value) return;
+
     places.value = result.content ?? [];
     page.value = result.page ?? targetPage;
     totalElements.value = result.totalElements ?? places.value.length;
     totalPages.value = result.totalPages ?? 1;
   } catch {
+    if (requestId !== latestPlaceRequestId.value) return;
+
     places.value = [];
     totalElements.value = 0;
     totalPages.value = 0;
     errorMessage.value = "장소 목록을 불러오지 못했습니다.";
   } finally {
+    if (requestId !== latestPlaceRequestId.value) return;
+
     isLoading.value = false;
   }
+};
+
+const normalizeCategory = (category) => {
+  const normalizedCategory = category.trim();
+
+  return normalizedCategory === "전체" ? "" : normalizedCategory;
 };
 
 const selectFilter = (filter) => {
@@ -92,22 +108,78 @@ const getRouteKeyword = () => {
   return Array.isArray(keyword) ? (keyword[0] ?? "") : (keyword ?? "");
 };
 
+const getRouteCategory = () => {
+  const category = route.query.category;
+
+  return Array.isArray(category) ? (category[0] ?? "") : (category ?? "");
+};
+
+const getSearchQuery = (keyword, category) => {
+  const query = {};
+
+  if (keyword) {
+    query.keyword = keyword;
+  }
+
+  if (category) {
+    query.category = category;
+  }
+
+  return query;
+};
+
+const isSameSearchQuery = (query) =>
+  (query.keyword ?? "") === getRouteKeyword().trim() &&
+  (query.category ?? "") === getRouteCategory().trim();
+
+const syncSearchState = ({ keyword, category }) => {
+  searchKeyword.value = keyword;
+  appliedKeyword.value = keyword;
+  selectedCategory.value = category;
+  appliedCategory.value = category;
+};
+
 const applySearch = async (keyword = searchKeyword.value) => {
   const normalizedKeyword = keyword.trim();
+  const nextCategory = normalizeCategory(selectedCategory.value);
+  const nextQuery = getSearchQuery(normalizedKeyword, nextCategory);
 
-  searchKeyword.value = normalizedKeyword;
-  appliedKeyword.value = normalizedKeyword;
-  appliedCategory.value = selectedCategory.value;
+  syncSearchState({
+    keyword: normalizedKeyword,
+    category: nextCategory,
+  });
 
   if (normalizedKeyword && !recentSearches.value.includes(normalizedKeyword)) {
     recentSearches.value = [normalizedKeyword, ...recentSearches.value].slice(0, 5);
   }
 
   isSearchOpen.value = false;
-  router.replace({
-    name: "list",
-    query: normalizedKeyword ? { keyword: normalizedKeyword } : {},
+
+  if (!isSameSearchQuery(nextQuery)) {
+    await router.replace({
+      name: "list",
+      query: nextQuery,
+    });
+    return;
+  }
+
+  await loadPlaces(0);
+};
+
+const loadPlacesFromRoute = async () => {
+  const initialKeyword = getRouteKeyword().trim();
+  const initialCategory = normalizeCategory(getRouteCategory());
+
+  syncSearchState({
+    keyword: initialKeyword,
+    category: initialCategory,
   });
+
+  if (initialKeyword && !recentSearches.value.includes(initialKeyword)) {
+    recentSearches.value = [initialKeyword, ...recentSearches.value].slice(0, 5);
+  }
+
+  isSearchOpen.value = false;
   await loadPlaces(0);
 };
 
@@ -132,15 +204,8 @@ const goToMap = () => {
   });
 };
 
-onMounted(async () => {
-  const initialKeyword = getRouteKeyword().trim();
-
-  if (initialKeyword) {
-    await applySearch(initialKeyword);
-    return;
-  }
-
-  await loadPlaces(0);
+onMounted(() => {
+  loadPlacesFromRoute();
 });
 </script>
 

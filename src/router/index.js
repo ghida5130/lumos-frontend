@@ -126,6 +126,16 @@ const router = createRouter({
       },
     },
     {
+      path: "/my-reviews",
+      name: "my-reviews",
+      component: () => import("../views/MyReviewsView.vue"),
+      meta: {
+        headerTitle: "내가 쓴 리뷰",
+        showBackButton: true,
+        requiresAuth: true,
+      },
+    },
+    {
       path: "/saved-courses",
       name: "saved-courses",
       component: () => import("../views/SavedCoursesView.vue"),
@@ -162,6 +172,16 @@ const router = createRouter({
       component: () => import("../views/EditProfileView.vue"),
       meta: {
         headerTitle: "프로필 수정",
+        showBackButton: true,
+        requiresAuth: true,
+      },
+    },
+    {
+      path: "/change-password",
+      name: "change-password",
+      component: () => import("../views/ChangePasswordView.vue"),
+      meta: {
+        headerTitle: "비밀번호 변경",
         showBackButton: true,
         requiresAuth: true,
       },

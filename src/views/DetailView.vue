@@ -1,7 +1,7 @@
 <script setup>
 import { computed, onBeforeUnmount, ref, watch } from "vue";
 import { useRoute } from "vue-router";
-import { getPlaceDetail, postNewFavorite } from "@/api/place";
+import { deleteFavorite, getPlaceDetail, postNewFavorite } from "@/api/place";
 import {
   deleteReviewLike,
   deleteReview,
@@ -27,8 +27,7 @@ const reviewTotalCount = ref(0);
 const isLoading = ref(false);
 const errorMessage = ref("");
 const pendingReviewLikes = ref(new Set());
-const isAddingFavorite = ref(false);
-const isFavoriteAdded = ref(false);
+const isUpdatingFavorite = ref(false);
 const showReviewDialog = ref(false);
 const deletingReview = ref(null);
 const showReviewCalendar = ref(false);
@@ -123,6 +122,7 @@ function mapPlace(placeData) {
     hours: formatHours(placeData.openingTime, placeData.closingTime),
     likeCount: placeData.likeCount ?? 0,
     reviewCount: placeData.reviewCount ?? 0,
+    isFavorite: Boolean(placeData.isFavorite),
   };
 }
 
@@ -173,7 +173,9 @@ function resetReviewForm() {
   showReviewCalendar.value = false;
   editingReview.value = null;
 
-  reviewImagePreviews.value.filter(isLocalPreview).forEach((preview) => URL.revokeObjectURL(preview.url));
+  reviewImagePreviews.value
+    .filter(isLocalPreview)
+    .forEach((preview) => URL.revokeObjectURL(preview.url));
   reviewImagePreviews.value = [];
 }
 
@@ -292,7 +294,9 @@ function handleReviewImageChange(event) {
     toastStore.warning("이미지 파일만 업로드할 수 있습니다.");
   }
 
-  reviewImagePreviews.value.filter(isLocalPreview).forEach((preview) => URL.revokeObjectURL(preview.url));
+  reviewImagePreviews.value
+    .filter(isLocalPreview)
+    .forEach((preview) => URL.revokeObjectURL(preview.url));
   reviewImageFiles.value = imageFiles;
   reviewImagePreviews.value = imageFiles.map((file) => ({
     id: `${file.name}-${file.lastModified}-${file.size}`,
@@ -325,7 +329,9 @@ async function submitReview() {
   }
 
   isSubmittingReview.value = true;
-  toastStore.info(isReviewEditMode.value ? "리뷰를 수정하는 중입니다." : "리뷰를 등록하는 중입니다.");
+  toastStore.info(
+    isReviewEditMode.value ? "리뷰를 수정하는 중입니다." : "리뷰를 등록하는 중입니다.",
+  );
 
   try {
     const imageUrls = await getSubmittedReviewImageUrls();
@@ -388,7 +394,9 @@ async function submitReview() {
     if (error.statusCode === 401) {
       toastStore.warning("로그인이 필요합니다.");
     } else {
-      toastStore.error(isReviewEditMode.value ? "리뷰 수정에 실패했습니다." : "리뷰 등록에 실패했습니다.");
+      toastStore.error(
+        isReviewEditMode.value ? "리뷰 수정에 실패했습니다." : "리뷰 등록에 실패했습니다.",
+      );
     }
   } finally {
     isSubmittingReview.value = false;
@@ -408,42 +416,51 @@ async function loadPlaceDetails(id) {
     place.value = mapPlace(placeData);
     reviews.value = (reviewData.content ?? []).map(mapReview);
     reviewTotalCount.value = reviewData.totalElements ?? reviews.value.length;
-    isFavoriteAdded.value = false;
   } catch {
     place.value = null;
     reviews.value = [];
     reviewTotalCount.value = 0;
-    isFavoriteAdded.value = false;
     errorMessage.value = "여행지 상세 정보를 불러오지 못했습니다.";
   } finally {
     isLoading.value = false;
   }
 }
 
-async function addPlaceFavorite() {
-  if (!place.value?.id || isAddingFavorite.value || isFavoriteAdded.value) {
+async function togglePlaceFavorite() {
+  if (!place.value?.id || isUpdatingFavorite.value) {
     return;
   }
 
-  isAddingFavorite.value = true;
+  isUpdatingFavorite.value = true;
 
   try {
+    if (place.value.isFavorite) {
+      await deleteFavorite(place.value.id);
+      place.value.isFavorite = false;
+      place.value.likeCount = Math.max(0, place.value.likeCount - 1);
+      toastStore.success("즐겨찾기에서 제거되었습니다.");
+      return;
+    }
+
     await postNewFavorite(place.value.id);
-    isFavoriteAdded.value = true;
+    place.value.isFavorite = true;
+    place.value.likeCount += 1;
     toastStore.success("즐겨찾기에 추가되었습니다.");
   } catch (error) {
     if (error.statusCode === 401) {
       toastStore.warning("로그인이 필요합니다.");
     } else if (error.statusCode === 409) {
-      isFavoriteAdded.value = true;
+      place.value.isFavorite = true;
       toastStore.info("이미 즐겨찾기에 추가된 장소입니다.");
     } else if (error.statusCode === 404) {
       toastStore.error("존재하지 않는 장소입니다.");
     } else {
-      toastStore.error("즐겨찾기 추가에 실패했습니다.");
+      toastStore.error(
+        place.value.isFavorite ? "즐겨찾기 제거에 실패했습니다." : "즐겨찾기 추가에 실패했습니다.",
+      );
     }
   } finally {
-    isAddingFavorite.value = false;
+    isUpdatingFavorite.value = false;
   }
 }
 
@@ -479,11 +496,15 @@ async function toggleReviewLike(reviewId) {
     if (error.statusCode === 401) {
       toastStore.warning("로그인이 필요합니다.");
     } else if (error.statusCode === 409) {
-      toastStore.info(previousLikedByMe ? "이미 좋아요가 취소되었습니다." : "이미 좋아요 처리되었습니다.");
+      toastStore.info(
+        previousLikedByMe ? "이미 좋아요가 취소되었습니다." : "이미 좋아요 처리되었습니다.",
+      );
     } else if (error.statusCode === 500) {
       toastStore.error("서버 내부 오류가 발생했습니다.");
     } else {
-      toastStore.error(previousLikedByMe ? "리뷰 좋아요 취소에 실패했습니다." : "리뷰 좋아요 처리에 실패했습니다.");
+      toastStore.error(
+        previousLikedByMe ? "리뷰 좋아요 취소에 실패했습니다." : "리뷰 좋아요 처리에 실패했습니다.",
+      );
     }
   } finally {
     const nextPendingLikes = new Set(pendingReviewLikes.value);
@@ -499,7 +520,9 @@ watch(
 );
 
 onBeforeUnmount(() => {
-  reviewImagePreviews.value.filter(isLocalPreview).forEach((preview) => URL.revokeObjectURL(preview.url));
+  reviewImagePreviews.value
+    .filter(isLocalPreview)
+    .forEach((preview) => URL.revokeObjectURL(preview.url));
 });
 </script>
 
@@ -588,6 +611,18 @@ onBeforeUnmount(() => {
             </div>
           </address>
         </article>
+        <button
+          class="favorite-button"
+          :class="{ 'favorite-button--remove': place.isFavorite }"
+          type="button"
+          :disabled="isUpdatingFavorite"
+          @click="togglePlaceFavorite"
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M5 4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v18l-7-4-7 4V4Z" />
+          </svg>
+          {{ place.isFavorite ? "즐겨찾기 제거" : "즐겨찾기 추가" }}
+        </button>
 
         <section class="review-section">
           <header class="review-heading">
@@ -651,18 +686,6 @@ onBeforeUnmount(() => {
             </ul>
           </article>
         </section>
-
-        <button
-          class="favorite-button"
-          type="button"
-          :disabled="isAddingFavorite || isFavoriteAdded"
-          @click="addPlaceFavorite"
-        >
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M5 4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v18l-7-4-7 4V4Z" />
-          </svg>
-          {{ isAddingFavorite ? "추가 중..." : isFavoriteAdded ? "즐겨찾기 추가됨" : "즐겨찾기 추가" }}
-        </button>
       </div>
     </template>
 
@@ -671,7 +694,9 @@ onBeforeUnmount(() => {
         <header class="review-dialog-header">
           <div>
             <h3>{{ isReviewEditMode ? "리뷰 수정" : "리뷰 작성" }}</h3>
-            <p>{{ isReviewEditMode ? "리뷰 내용과 이미지를 수정할 수 있습니다." : place?.title }}</p>
+            <p>
+              {{ isReviewEditMode ? "리뷰 내용과 이미지를 수정할 수 있습니다." : place?.title }}
+            </p>
           </div>
           <button type="button" aria-label="닫기" @click="closeReviewDialog">
             <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -781,11 +806,7 @@ onBeforeUnmount(() => {
       </article>
     </div>
 
-    <div
-      v-if="deletingReview"
-      class="review-delete-backdrop"
-      @click.self="closeReviewDeleteDialog"
-    >
+    <div v-if="deletingReview" class="review-delete-backdrop" @click.self="closeReviewDeleteDialog">
       <article class="review-delete-dialog" role="dialog" aria-modal="true">
         <header>
           <h3>리뷰 삭제</h3>
@@ -922,7 +943,7 @@ onBeforeUnmount(() => {
   position: absolute;
   inset: 0;
   background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.08), transparent);
-  content: '';
+  content: "";
   animation: skeletonSweep 1.25s ease-in-out infinite;
 }
 
@@ -1311,6 +1332,13 @@ onBeforeUnmount(() => {
   stroke-linecap: round;
   stroke-linejoin: round;
   stroke-width: 1.6;
+}
+
+.favorite-button--remove {
+  color: #ffedf2;
+  background: rgba(255, 111, 159, 0.16);
+  border: 1px solid rgba(255, 111, 159, 0.26);
+  box-shadow: none;
 }
 
 .favorite-button:disabled {

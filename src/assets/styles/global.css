@@ -21,21 +21,65 @@ body::before {
   z-index: 0;
   background-color: #071321;
   background-image:
-    radial-gradient(circle at 8% 12%, rgba(223, 247, 255, 0.9) 0 1px, transparent 2px),
-    radial-gradient(circle at 82% 9%, rgba(223, 247, 255, 0.75) 0 1px, transparent 2px),
-    radial-gradient(circle at 66% 28%, rgba(114, 211, 255, 0.7) 0 1px, transparent 2px),
-    radial-gradient(circle at 14% 47%, rgba(223, 247, 255, 0.8) 0 1px, transparent 2px),
-    radial-gradient(circle at 91% 61%, rgba(114, 211, 255, 0.65) 0 1px, transparent 2px),
-    radial-gradient(circle at 32% 78%, rgba(223, 247, 255, 0.75) 0 1px, transparent 2px),
-    radial-gradient(circle at 72% 91%, rgba(223, 247, 255, 0.9) 0 1px, transparent 2px),
+    radial-gradient(circle at 8% 12%, rgba(245, 252, 255, 0.95) 0 0.07rem, rgba(180, 231, 255, 0.28) 0.1rem 0.26rem, transparent 0.44rem),
+    radial-gradient(circle at 21% 18%, rgba(245, 252, 255, 0.7) 0 0.055rem, rgba(180, 231, 255, 0.16) 0.09rem 0.22rem, transparent 0.38rem),
+    radial-gradient(circle at 82% 9%, rgba(245, 252, 255, 0.76) 0 0.06rem, rgba(180, 231, 255, 0.18) 0.1rem 0.24rem, transparent 0.42rem),
+    radial-gradient(circle at 47% 16%, rgba(174, 225, 255, 0.62) 0 0.055rem, rgba(114, 211, 255, 0.16) 0.09rem 0.22rem, transparent 0.36rem),
+    radial-gradient(circle at 66% 28%, rgba(206, 242, 255, 0.75) 0 0.065rem, rgba(114, 211, 255, 0.2) 0.1rem 0.25rem, transparent 0.44rem),
+    radial-gradient(circle at 14% 47%, rgba(245, 252, 255, 0.82) 0 0.06rem, rgba(180, 231, 255, 0.2) 0.09rem 0.24rem, transparent 0.42rem),
+    radial-gradient(circle at 38% 43%, rgba(245, 252, 255, 0.62) 0 0.052rem, rgba(180, 231, 255, 0.14) 0.08rem 0.2rem, transparent 0.34rem),
+    radial-gradient(circle at 73% 51%, rgba(245, 252, 255, 0.66) 0 0.055rem, rgba(180, 231, 255, 0.16) 0.09rem 0.22rem, transparent 0.36rem),
+    radial-gradient(circle at 91% 61%, rgba(174, 225, 255, 0.68) 0 0.06rem, rgba(114, 211, 255, 0.18) 0.09rem 0.22rem, transparent 0.38rem),
+    radial-gradient(circle at 32% 78%, rgba(245, 252, 255, 0.72) 0 0.06rem, rgba(180, 231, 255, 0.18) 0.09rem 0.24rem, transparent 0.4rem),
+    radial-gradient(circle at 11% 84%, rgba(174, 225, 255, 0.58) 0 0.052rem, rgba(114, 211, 255, 0.14) 0.08rem 0.2rem, transparent 0.34rem),
+    radial-gradient(circle at 55% 83%, rgba(245, 252, 255, 0.6) 0 0.052rem, rgba(180, 231, 255, 0.14) 0.08rem 0.2rem, transparent 0.34rem),
+    radial-gradient(circle at 72% 91%, rgba(245, 252, 255, 0.88) 0 0.07rem, rgba(180, 231, 255, 0.22) 0.1rem 0.26rem, transparent 0.44rem),
+    radial-gradient(circle at 94% 86%, rgba(245, 252, 255, 0.62) 0 0.052rem, rgba(180, 231, 255, 0.14) 0.08rem 0.2rem, transparent 0.34rem),
+    radial-gradient(ellipse at 64% 22%, rgba(150, 203, 255, 0.06), transparent 18rem),
+    radial-gradient(ellipse at 30% 68%, rgba(223, 247, 255, 0.035), transparent 20rem),
     radial-gradient(circle at 82% 38%, rgba(93, 102, 214, 0.16), transparent 15rem),
     radial-gradient(circle at 14% 58%, rgba(72, 207, 255, 0.08), transparent 17rem);
   content: '';
   pointer-events: none;
 }
 
+body::after {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background-image:
+    radial-gradient(circle at 18% 28%, rgba(255, 255, 255, 0.92) 0 0.06rem, rgba(180, 231, 255, 0.32) 0.1rem 0.3rem, transparent 0.55rem),
+    radial-gradient(circle at 58% 11%, rgba(185, 231, 255, 0.78) 0 0.052rem, rgba(114, 211, 255, 0.24) 0.09rem 0.26rem, transparent 0.48rem),
+    radial-gradient(circle at 86% 31%, rgba(245, 252, 255, 0.8) 0 0.055rem, rgba(180, 231, 255, 0.24) 0.09rem 0.28rem, transparent 0.5rem),
+    radial-gradient(circle at 27% 62%, rgba(245, 252, 255, 0.76) 0 0.052rem, rgba(180, 231, 255, 0.22) 0.09rem 0.26rem, transparent 0.48rem),
+    radial-gradient(circle at 68% 70%, rgba(185, 231, 255, 0.7) 0 0.052rem, rgba(114, 211, 255, 0.2) 0.09rem 0.24rem, transparent 0.46rem),
+    radial-gradient(circle at 43% 92%, rgba(245, 252, 255, 0.82) 0 0.055rem, rgba(180, 231, 255, 0.24) 0.09rem 0.28rem, transparent 0.5rem);
+  content: '';
+  filter: drop-shadow(0 0 0.28rem rgba(180, 231, 255, 0.34));
+  mix-blend-mode: screen;
+  opacity: 0.58;
+  pointer-events: none;
+  animation: starTwinkle 3.8s ease-in-out infinite;
+  will-change: opacity;
+}
+
 #app {
   position: relative;
   z-index: 1;
   min-height: 100vh;
+}
+
+@keyframes starTwinkle {
+  0%,
+  100% {
+    opacity: 0.28;
+  }
+
+  45% {
+    opacity: 0.86;
+  }
+
+  70% {
+    opacity: 0.46;
+  }
 }

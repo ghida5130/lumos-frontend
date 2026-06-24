@@ -2,6 +2,7 @@
 import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 import image3 from "@/assets/images/mock/carousel/3.jpg";
 import image4 from "@/assets/images/mock/carousel/4.jpg";
+import router from "@/router";
 
 const destinations = [
   {
@@ -11,6 +12,7 @@ const destinations = [
     tags: ["관광지", "먹거리", "술집"],
     image:
       "https://blog.kakaocdn.net/dna/owbKQ/btq2IPPuiQY/AAAAAAAAAAAAAAAAAAAAAFXcbzJj788GN7hFrgGlxGDDu40QtvZwsZ5pXfHSpeJJ/img.jpg?credential=yqXZFxpELC7KVnFOS48ylbz2pIh7yKj8&expires=1782831599&allow_ip=&allow_referer=&signature=IuETOZkZJIjBJvSRIZgvoHqP0SM%3D",
+    placeId: 1029,
   },
   {
     name: "해동 용궁사",
@@ -19,18 +21,21 @@ const destinations = [
     tags: ["야경", "바다", "도시"],
     image:
       "https://mblogthumb-phinf.pstatic.net/MjAxNzA1MDlfNDgg/MDAxNDk0MzM1MTY4NzU3.A_71tvpaJmv3Wczu17uJITsLpEdskga_k0n0_1-8Abwg.lqGCLkBJJDXJ8KE0GbU5icYJ0BPkONlulz-nsUw4Y1Mg.JPEG.imck81/CK8_3289.jpg?type=w800",
+    placeId: 1066,
   },
   {
     name: "여수",
     description: "여수 밤바다와 따뜻한 조명이 만들어내는 낭만적인 분위기",
     tags: ["야경", "감성", "바다"],
     image: image3,
+    placeId: null,
   },
   {
     name: "부산",
     description: "도시의 불빛과 해안선을 한눈에 담을 수 있는 부산의 화려한 밤",
     tags: ["야경", "도시"],
     image: image4,
+    placeId: null,
   },
   {
     name: "광안리 해수욕장",
@@ -39,6 +44,7 @@ const destinations = [
     tags: ["야경", "감성", "산책"],
     image:
       "https://media.triple.guide/triple-cms/c_limit,f_auto,h_1024,w_1024/81442898-e992-4be8-9b40-1df1b0ab50e8.jpeg",
+    placeId: 1025,
   },
 ];
 
@@ -48,6 +54,8 @@ const dragOffset = ref(0);
 const isDragging = ref(false);
 const isResetting = ref(false);
 const startX = ref(0);
+const hasDragged = ref(false);
+const dragResetTimer = ref(null);
 const autoPlayTimer = ref(null);
 const stepPx = ref(0);
 const itemPx = ref(0);
@@ -56,6 +64,33 @@ const resizeObserver = ref(null);
 
 const itemWidthRatio = 0.85;
 const sideGapRatio = 0.04;
+
+const goToDetail = (destination, event) => {
+  if (hasDragged.value) {
+    event?.preventDefault();
+    event?.stopPropagation();
+    clearDragResetTimer();
+    hasDragged.value = false;
+    return;
+  }
+
+  if (destination.placeId) {
+    router.push({
+      name: "detail",
+      query: {
+        id: destination.placeId,
+      },
+    });
+    return;
+  }
+
+  router.push({
+    name: "list",
+    query: {
+      keyword: destination.name,
+    },
+  });
+};
 
 const carouselItems = computed(() => [
   destinations[destinations.length - 1],
@@ -122,6 +157,12 @@ const stopAutoPlay = () => {
   autoPlayTimer.value = null;
 };
 
+const clearDragResetTimer = () => {
+  if (!dragResetTimer.value) return;
+  clearTimeout(dragResetTimer.value);
+  dragResetTimer.value = null;
+};
+
 const startAutoPlay = () => {
   stopAutoPlay();
   autoPlayTimer.value = setInterval(goToNext, 10000);
@@ -130,8 +171,10 @@ const startAutoPlay = () => {
 const getClientX = (event) => event.touches?.[0]?.clientX ?? event.clientX;
 
 const handleDragStart = (event) => {
+  clearDragResetTimer();
   stopAutoPlay();
   isDragging.value = true;
+  hasDragged.value = false;
   startX.value = getClientX(event);
 };
 
@@ -144,15 +187,25 @@ const handleDragEnd = () => {
   if (!isDragging.value) return;
 
   const threshold = 48;
+  const didSlide = Math.abs(dragOffset.value) >= threshold;
+
   if (dragOffset.value <= -threshold) {
     goToNext();
   } else if (dragOffset.value >= threshold) {
     goToPrev();
   }
 
+  hasDragged.value = didSlide;
+
   isDragging.value = false;
   dragOffset.value = 0;
   startAutoPlay();
+
+  clearDragResetTimer();
+  dragResetTimer.value = setTimeout(() => {
+    hasDragged.value = false;
+    dragResetTimer.value = null;
+  }, 450);
 };
 
 onMounted(() => {
@@ -169,6 +222,7 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   stopAutoPlay();
+  clearDragResetTimer();
   resizeObserver.value?.disconnect();
   window.removeEventListener("resize", measureCarousel);
 });
@@ -201,7 +255,7 @@ onBeforeUnmount(() => {
           class="carousel-item"
           :style="getItemStyle(destination.image)"
         >
-          <button class="item-button">
+          <button class="item-button" @click="goToDetail(destination, $event)">
             <div class="item-content">
               <div class="item-tags">
                 <span v-for="tag in destination.tags" :key="tag">#{{ tag }}</span>
@@ -256,6 +310,8 @@ onBeforeUnmount(() => {
 
 .item-button {
   text-align: left;
+  height: 100%;
+  width: 100%;
 }
 
 .item-content {

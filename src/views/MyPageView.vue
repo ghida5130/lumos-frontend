@@ -43,9 +43,11 @@ const menuGroups = [
   [
     { id: "saved-routes", label: "저장한 여행 경로", routeName: "saved-courses" },
     { id: "favorite-places", label: "여행지 즐겨찾기", routeName: "favorites" },
+    { id: "my-reviews", label: "내가 쓴 리뷰 목록", routeName: "my-reviews" },
   ],
   [
     { id: "settings", label: "설정" },
+    { id: "change-password", label: "비밀번호 변경", routeName: "change-password" },
     { id: "withdraw", label: "회원 탈퇴", routeName: "withdraw" },
     { id: "logout", label: "로그아웃", action: logout },
   ],
