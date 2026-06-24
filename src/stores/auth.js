@@ -6,6 +6,7 @@ export const useAuthStore = defineStore('auth', () => {
   const userId = ref(null)
   const email = ref('')
   const nickname = ref('')
+  const provider = ref('')
   const profileImageUrl = ref('')
   const authStatusMessage = ref('')
 
@@ -24,6 +25,7 @@ export const useAuthStore = defineStore('auth', () => {
     userId.value = getUserId(user)
     email.value = user.email ?? ''
     nickname.value = user.nickname ?? ''
+    provider.value = user.provider ?? ''
     profileImageUrl.value = user.profileImageUrl ?? ''
   }
 
@@ -38,6 +40,7 @@ export const useAuthStore = defineStore('auth', () => {
     userId.value = null
     email.value = ''
     nickname.value = ''
+    provider.value = ''
     profileImageUrl.value = ''
   }
 
@@ -54,6 +57,7 @@ export const useAuthStore = defineStore('auth', () => {
     userId,
     email,
     nickname,
+    provider,
     profileImageUrl,
     authStatusMessage,
     isLoggedIn,

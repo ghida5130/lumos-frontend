@@ -33,6 +33,7 @@ const logoutMutation = useMutation({
 });
 
 const logoutErrorMessage = computed(() => logoutMutation.error.value?.message ?? "");
+const isGoogleProvider = computed(() => authStore.provider === "GOOGLE");
 const logout = () => logoutMutation.mutate();
 const showToastTest = () => {
   toastStore.success("토스트가 정상적으로 표시됩니다.");
@@ -59,7 +60,10 @@ const menuGroups = [
           <img v-if="authStore.profileImageUrl" :src="authStore.profileImageUrl" alt="" />
         </div>
         <div class="profile-copy">
-          <h2>{{ authStore.nickname || "이름" }}</h2>
+          <h2>
+            <span v-if="isGoogleProvider" class="provider-badge">Google</span>
+            <span>{{ authStore.nickname || "이름" }}</span>
+          </h2>
           <p>{{ authStore.email }}</p>
         </div>
       </div>
@@ -172,8 +176,29 @@ const menuGroups = [
 }
 
 .profile-copy h2 {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-width: 0;
   font-size: 1rem;
   font-weight: 700;
+}
+
+.profile-copy h2 span:last-child {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.provider-badge {
+  flex: 0 0 auto;
+  padding: 0.18rem 0.45rem;
+  color: #071321;
+  background: #f7f9fc;
+  border-radius: 999px;
+  font-size: 0.62rem;
+  font-weight: 800;
 }
 
 .profile-copy p {

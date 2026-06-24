@@ -193,6 +193,7 @@ export const authHandlers = [
             userId: 1,
             email: "user-pinia@example.com",
             nickname: "test-pinia",
+            provider: "LOCAL",
             role: "USER",
             profileImageUrl:
               "https://media.istockphoto.com/id/1196083861/vector/simple-man-head-icon-set.jpg?s=612x612&w=0&k=20&c=a8fwdX6UKUVCOedN_p0pPszu8B4f6sjarDmUGHngvdM=",
@@ -246,6 +247,7 @@ export const authHandlers = [
             userId: 2,
             email: "google-user@example.com",
             nickname: "google-user",
+            provider: "GOOGLE",
             role: "USER",
             profileImageUrl: "https://example.com/profile/google-user.png",
           },
@@ -315,6 +317,7 @@ export const authHandlers = [
           userId: 1,
           email: "user@example.com",
           nickname: "test",
+          provider: "LOCAL",
           role: "USER",
           profileImageUrl: "https://example.com/profile/default.png",
         },
