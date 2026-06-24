@@ -38,6 +38,16 @@ const router = createRouter({
       },
     },
     {
+      path: "/auth/social/callback",
+      name: "social-callback",
+      component: () => import("../views/SocialCallbackView.vue"),
+      meta: {
+        headerTitle: "구글 로그인",
+        hideHeader: true,
+        hideBottomBar: true,
+      },
+    },
+    {
       path: "/signup",
       name: "signup",
       component: () => import("../views/SignupView.vue"),
@@ -217,12 +227,10 @@ router.beforeEach(async (to) => {
 
   const toastStore = useToastStore();
   authStore.setAuthStatus("로그인 상태를 확인하는 중입니다.");
-  toastStore.info("로그인 상태를 확인하고 있습니다.", { duration: 1800 });
 
   try {
     await refreshAccessToken();
     authStore.clearAuthStatus();
-    toastStore.success("로그인 상태가 확인되었습니다.", { duration: 1800 });
     return true;
   } catch {
     // Refresh Token까지 사용할 수 없을 때 로그인 페이지로 이동

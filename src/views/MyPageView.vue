@@ -18,7 +18,6 @@ const logoutMutation = useMutation({
   },
   onMutate: () => {
     authStore.setAuthStatus("로그아웃 처리 중입니다.");
-    toastStore.info("로그아웃 처리 중입니다.", { duration: 1800 });
   },
   onSuccess: () => {
     clearAuthSession();
@@ -46,8 +45,6 @@ const menuGroups = [
   ],
   [
     { id: "settings", label: "설정" },
-    { id: "edit-profile", label: "프로필 수정하기", routeName: "edit-profile" },
-    { id: "notifications", label: "알림 설정" },
     { id: "withdraw", label: "회원 탈퇴", routeName: "withdraw" },
     { id: "logout", label: "로그아웃", action: logout },
   ],

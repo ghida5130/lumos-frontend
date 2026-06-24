@@ -14,6 +14,7 @@ const router = useRouter();
 
 const email = ref("");
 const password = ref("");
+const googleLoginUrl = `${import.meta.env.VITE_API_BASE_URL}/oauth2/authorization/google`;
 
 // axios 객체 생성 (요청 URL, 최대 대기시간, 헤더, bearer 설정)
 const loginApi = axios.create({
@@ -109,6 +110,7 @@ function submitLogin() {
         <button type="submit" :disabled="!canSubmit">
           {{ loginMutation.isPending.value ? "로그인 중..." : "로그인" }}
         </button>
+        <a class="google-login-link" :href="googleLoginUrl">구글 로그인</a>
       </form>
 
       <RouterLink class="signup-link" :to="{ name: 'signup' }">회원가입</RouterLink>
@@ -236,5 +238,18 @@ button:disabled {
   border-radius: 0.7rem;
   font-size: 0.86rem;
   font-weight: 700;
+}
+
+.google-login-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 3rem;
+  color: #dce5ef;
+  background: #20262d;
+  border: 1px solid #3b4148;
+  border-radius: 0.7rem;
+  font-size: 0.95rem;
+  font-weight: 800;
 }
 </style>

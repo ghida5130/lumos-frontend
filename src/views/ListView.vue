@@ -4,11 +4,12 @@ import SearchPanel from "@/components/list/SearchPanel.vue";
 import { getPlaceList } from "@/api/place";
 import { getPlaceImage } from "@/utils/placeImage";
 import { computed, onMounted, ref } from "vue";
-import { useRouter } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 
 const PAGE_SIZE = 10;
 const MAP_PLACES_STORAGE_KEY = "lumos:map-places";
 const filterOptions = ["전체", "관광지", "숙소", "식당"];
+const route = useRoute();
 const router = useRouter();
 
 const places = ref([]);
@@ -85,6 +86,12 @@ const selectFilter = (filter) => {
   selectedCategory.value = filter === "전체" ? "" : filter;
 };
 
+const getRouteKeyword = () => {
+  const keyword = route.query.keyword;
+
+  return Array.isArray(keyword) ? (keyword[0] ?? "") : (keyword ?? "");
+};
+
 const applySearch = async (keyword = searchKeyword.value) => {
   const normalizedKeyword = keyword.trim();
 
@@ -97,6 +104,10 @@ const applySearch = async (keyword = searchKeyword.value) => {
   }
 
   isSearchOpen.value = false;
+  router.replace({
+    name: "list",
+    query: normalizedKeyword ? { keyword: normalizedKeyword } : {},
+  });
   await loadPlaces(0);
 };
 
@@ -121,8 +132,15 @@ const goToMap = () => {
   });
 };
 
-onMounted(() => {
-  loadPlaces(0);
+onMounted(async () => {
+  const initialKeyword = getRouteKeyword().trim();
+
+  if (initialKeyword) {
+    await applySearch(initialKeyword);
+    return;
+  }
+
+  await loadPlaces(0);
 });
 </script>
 

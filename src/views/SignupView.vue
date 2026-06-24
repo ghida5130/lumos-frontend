@@ -1,8 +1,8 @@
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useMutation } from '@tanstack/vue-query'
 import { RouterLink, useRouter } from 'vue-router'
-import { postNewUser } from '@/api/auth'
+import { getEmailDuplicate, getNicknameDuplicate, postNewUser } from '@/api/auth'
 import { useToastStore } from '@/stores/toast'
 
 const router = useRouter()
@@ -11,6 +11,17 @@ const toastStore = useToastStore()
 const email = ref('')
 const password = ref('')
 const nickname = ref('')
+const checkedEmail = ref('')
+const checkedNickname = ref('')
+const isEmailAvailable = ref(false)
+const isNicknameAvailable = ref(false)
+const isCheckingEmail = ref(false)
+const isCheckingNickname = ref(false)
+const emailCheckMessage = ref('')
+const nicknameCheckMessage = ref('')
+
+const normalizedEmail = computed(() => email.value.trim())
+const normalizedNickname = computed(() => nickname.value.trim())
 
 const signupMutation = useMutation({
   mutationFn: postNewUser,
@@ -25,9 +36,29 @@ const signupMutation = useMutation({
 
 const canSubmit = computed(
   () =>
-    email.value.trim() &&
+    normalizedEmail.value &&
     password.value &&
-    nickname.value.trim() &&
+    normalizedNickname.value &&
+    checkedEmail.value === normalizedEmail.value &&
+    checkedNickname.value === normalizedNickname.value &&
+    isEmailAvailable.value &&
+    isNicknameAvailable.value &&
+    !signupMutation.isPending.value,
+)
+
+const canCheckEmail = computed(
+  () =>
+    normalizedEmail.value &&
+    checkedEmail.value !== normalizedEmail.value &&
+    !isCheckingEmail.value &&
+    !signupMutation.isPending.value,
+)
+
+const canCheckNickname = computed(
+  () =>
+    normalizedNickname.value &&
+    checkedNickname.value !== normalizedNickname.value &&
+    !isCheckingNickname.value &&
     !signupMutation.isPending.value,
 )
 
@@ -39,16 +70,84 @@ const errorMessage = computed(() => {
   return error.response?.data?.message ?? error.message ?? '회원가입에 실패했습니다.'
 })
 
+function resetEmailCheck() {
+  checkedEmail.value = ''
+  isEmailAvailable.value = false
+}
+
+function resetNicknameCheck() {
+  checkedNickname.value = ''
+  isNicknameAvailable.value = false
+}
+
+async function checkEmail() {
+  if (!canCheckEmail.value) return
+
+  isCheckingEmail.value = true
+  emailCheckMessage.value = ''
+
+  try {
+    const result = await getEmailDuplicate(normalizedEmail.value)
+
+    checkedEmail.value = normalizedEmail.value
+    isEmailAvailable.value = Boolean(result.available)
+    emailCheckMessage.value = result.available
+      ? '사용 가능한 이메일입니다.'
+      : '이미 사용 중인 이메일입니다.'
+  } catch {
+    resetEmailCheck()
+    emailCheckMessage.value = '이메일 중복 확인에 실패했습니다.'
+  } finally {
+    isCheckingEmail.value = false
+  }
+}
+
+async function checkNickname() {
+  if (!canCheckNickname.value) return
+
+  isCheckingNickname.value = true
+  nicknameCheckMessage.value = ''
+
+  try {
+    const result = await getNicknameDuplicate(normalizedNickname.value)
+
+    checkedNickname.value = normalizedNickname.value
+    isNicknameAvailable.value = Boolean(result.available)
+    nicknameCheckMessage.value = result.available
+      ? '사용 가능한 닉네임입니다.'
+      : '이미 사용 중인 닉네임입니다.'
+  } catch {
+    resetNicknameCheck()
+    nicknameCheckMessage.value = '닉네임 중복 확인에 실패했습니다.'
+  } finally {
+    isCheckingNickname.value = false
+  }
+}
+
 function submitSignup() {
   if (!canSubmit.value) return
 
   signupMutation.reset()
   signupMutation.mutate({
-    email: email.value.trim(),
+    email: normalizedEmail.value,
     password: password.value,
-    nickname: nickname.value.trim(),
+    nickname: normalizedNickname.value,
   })
 }
+
+watch(email, () => {
+  if (checkedEmail.value !== normalizedEmail.value) {
+    resetEmailCheck()
+    emailCheckMessage.value = normalizedEmail.value ? '이메일 중복 확인이 필요합니다.' : ''
+  }
+})
+
+watch(nickname, () => {
+  if (checkedNickname.value !== normalizedNickname.value) {
+    resetNicknameCheck()
+    nicknameCheckMessage.value = normalizedNickname.value ? '닉네임 중복 확인이 필요합니다.' : ''
+  }
+})
 </script>
 
 <template>
@@ -61,16 +160,28 @@ function submitSignup() {
       </header>
 
       <form class="signup-form" @submit.prevent="submitSignup">
-        <label>
+        <div class="form-field">
           <span>이메일</span>
-          <input
-            v-model="email"
-            type="email"
-            autocomplete="email"
-            placeholder="example@example.com"
-            required
-          />
-        </label>
+          <div class="check-row">
+            <input
+              v-model="email"
+              type="email"
+              autocomplete="email"
+              placeholder="example@example.com"
+              required
+            />
+            <button type="button" :disabled="!canCheckEmail" @click="checkEmail">
+              {{ isCheckingEmail ? '확인 중' : '중복확인' }}
+            </button>
+          </div>
+          <p
+            v-if="emailCheckMessage"
+            class="field-message"
+            :class="{ 'field-message--success': isEmailAvailable }"
+          >
+            {{ emailCheckMessage }}
+          </p>
+        </div>
 
         <label>
           <span>비밀번호</span>
@@ -83,16 +194,28 @@ function submitSignup() {
           />
         </label>
 
-        <label>
+        <div class="form-field">
           <span>닉네임</span>
-          <input
-            v-model="nickname"
-            type="text"
-            autocomplete="nickname"
-            placeholder="닉네임을 입력하세요"
-            required
-          />
-        </label>
+          <div class="check-row">
+            <input
+              v-model="nickname"
+              type="text"
+              autocomplete="nickname"
+              placeholder="닉네임을 입력하세요"
+              required
+            />
+            <button type="button" :disabled="!canCheckNickname" @click="checkNickname">
+              {{ isCheckingNickname ? '확인 중' : '중복확인' }}
+            </button>
+          </div>
+          <p
+            v-if="nicknameCheckMessage"
+            class="field-message"
+            :class="{ 'field-message--success': isNicknameAvailable }"
+          >
+            {{ nicknameCheckMessage }}
+          </p>
+        </div>
 
         <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
 
@@ -154,10 +277,22 @@ label {
   gap: 0.45rem;
 }
 
-label span {
+label span,
+.form-field > span {
   color: #dce5ef;
   font-size: 0.82rem;
   font-weight: 700;
+}
+
+.form-field {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.check-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 5.6rem;
+  gap: 0.5rem;
 }
 
 input {
@@ -190,6 +325,16 @@ input:focus {
   line-height: 1.45;
 }
 
+.field-message {
+  color: #ffbaba;
+  font-size: 0.8rem;
+  line-height: 1.45;
+}
+
+.field-message--success {
+  color: #8fe6c8;
+}
+
 button {
   min-height: 3rem;
   margin-top: 0.25rem;
@@ -202,6 +347,12 @@ button {
     background 0.2s ease,
     opacity 0.2s ease,
     transform 0.2s ease;
+}
+
+.check-row button {
+  margin-top: 0;
+  padding: 0 0.6rem;
+  font-size: 0.78rem;
 }
 
 button:not(:disabled):active {
