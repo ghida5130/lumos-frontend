@@ -6,24 +6,6 @@ import router from "@/router";
 
 const destinations = [
   {
-    name: "더베이 101",
-    description:
-      "마린시티의 화려한 야경과 바다 위에 비치는 도시 불빛을 함께 즐길 수 있는 부산의 대표 명소",
-    tags: ["관광지", "먹거리", "술집"],
-    image:
-      "https://blog.kakaocdn.net/dna/owbKQ/btq2IPPuiQY/AAAAAAAAAAAAAAAAAAAAAFXcbzJj788GN7hFrgGlxGDDu40QtvZwsZ5pXfHSpeJJ/img.jpg?credential=yqXZFxpELC7KVnFOS48ylbz2pIh7yKj8&expires=1782831599&allow_ip=&allow_referer=&signature=IuETOZkZJIjBJvSRIZgvoHqP0SM%3D",
-    placeId: 1029,
-  },
-  {
-    name: "해동 용궁사",
-    description:
-      "푸른 바다를 마주한 사찰에서 고즈넉한 분위기와 탁 트인 해안 풍경을 느낄 수 있는 명소",
-    tags: ["야경", "바다", "도시"],
-    image:
-      "https://mblogthumb-phinf.pstatic.net/MjAxNzA1MDlfNDgg/MDAxNDk0MzM1MTY4NzU3.A_71tvpaJmv3Wczu17uJITsLpEdskga_k0n0_1-8Abwg.lqGCLkBJJDXJ8KE0GbU5icYJ0BPkONlulz-nsUw4Y1Mg.JPEG.imck81/CK8_3289.jpg?type=w800",
-    placeId: 1066,
-  },
-  {
     name: "여수",
     description: "여수 밤바다와 따뜻한 조명이 만들어내는 낭만적인 분위기",
     tags: ["야경", "감성", "바다"],
@@ -45,6 +27,24 @@ const destinations = [
     image:
       "https://media.triple.guide/triple-cms/c_limit,f_auto,h_1024,w_1024/81442898-e992-4be8-9b40-1df1b0ab50e8.jpeg",
     placeId: 1025,
+  },
+  {
+    name: "더베이 101",
+    description:
+      "마린시티의 화려한 야경과 바다 위에 비치는 도시 불빛을 함께 즐길 수 있는 부산의 대표 명소",
+    tags: ["관광지", "먹거리", "술집"],
+    image:
+      "https://blog.kakaocdn.net/dna/owbKQ/btq2IPPuiQY/AAAAAAAAAAAAAAAAAAAAAFXcbzJj788GN7hFrgGlxGDDu40QtvZwsZ5pXfHSpeJJ/img.jpg?credential=yqXZFxpELC7KVnFOS48ylbz2pIh7yKj8&expires=1782831599&allow_ip=&allow_referer=&signature=IuETOZkZJIjBJvSRIZgvoHqP0SM%3D",
+    placeId: 1029,
+  },
+  {
+    name: "해동 용궁사",
+    description:
+      "푸른 바다를 마주한 사찰에서 고즈넉한 분위기와 탁 트인 해안 풍경을 느낄 수 있는 명소",
+    tags: ["야경", "바다", "도시"],
+    image:
+      "https://mblogthumb-phinf.pstatic.net/MjAxNzA1MDlfNDgg/MDAxNDk0MzM1MTY4NzU3.A_71tvpaJmv3Wczu17uJITsLpEdskga_k0n0_1-8Abwg.lqGCLkBJJDXJ8KE0GbU5icYJ0BPkONlulz-nsUw4Y1Mg.JPEG.imck81/CK8_3289.jpg?type=w800",
+    placeId: 1066,
   },
 ];
 

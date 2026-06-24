@@ -662,7 +662,7 @@ onBeforeUnmount(() => {
                 >
                   삭제
                 </button>
-                <span class="review-like-count">{{ review.likeCount }}</span>
+
                 <button
                   class="review-like-button"
                   :class="{ 'review-like-button--active': review.likedByMe }"
@@ -675,6 +675,7 @@ onBeforeUnmount(() => {
                       d="M20.8 4.6c-1.9-1.8-4.9-1.7-6.7.2L12 7l-2.1-2.2C8.1 2.9 5.1 2.8 3.2 4.6 1.1 6.6 1 9.9 3 12l9 8.7 9-8.7c2-2.1 1.9-5.4-.2-7.4Z"
                     />
                   </svg>
+                  <span class="review-like-count">{{ review.likeCount }}</span>
                 </button>
               </div>
             </header>
@@ -1202,6 +1203,10 @@ onBeforeUnmount(() => {
   font-size: 0.78rem;
   font-weight: 700;
   line-height: 1;
+}
+
+.review-like-button:not(.review-like-button--active) .review-like-count {
+  color: #071321;
 }
 
 .review-edit-button {

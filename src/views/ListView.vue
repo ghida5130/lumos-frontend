@@ -26,6 +26,8 @@ const totalElements = ref(0);
 const totalPages = ref(0);
 const latestPlaceRequestId = ref(0);
 
+const normalizeTags = (tags) => (Array.isArray(tags) ? [...tags] : []);
+
 const mappedPlaces = computed(() =>
   places.value.map((place) => ({
     id: place.placeId,
@@ -33,7 +35,7 @@ const mappedPlaces = computed(() =>
     description: place.summary,
     category: place.category,
     likeCount: place.likeCount,
-    tags: place.tags ?? [],
+    tags: normalizeTags(place.tags),
     image: getPlaceImage(place.imageUrl, place.category, place.placeId),
     latitude: place.latitude,
     longitude: place.longitude,
@@ -194,12 +196,14 @@ const removeRecentSearch = (keyword) => {
 };
 
 const goToMap = () => {
-  sessionStorage.setItem(MAP_PLACES_STORAGE_KEY, JSON.stringify(mappedPlaces.value));
+  const mapPlaces = mappedPlaces.value;
+
+  sessionStorage.setItem(MAP_PLACES_STORAGE_KEY, JSON.stringify(mapPlaces));
 
   router.push({
     name: "place-map",
     state: {
-      places: mappedPlaces.value,
+      places: mapPlaces,
     },
   });
 };

@@ -1,29 +1,39 @@
 <script setup>
-import { useToastStore } from '@/stores/toast'
+import { useToastStore } from "@/stores/toast";
 
-const toastStore = useToastStore()
+const toastStore = useToastStore();
 
 const typeLabels = {
-  success: '성공',
-  error: '오류',
-  warning: '주의',
-  info: '알림',
-}
+  success: "성공",
+  error: "오류",
+  warning: "주의",
+  info: "알림",
+};
 </script>
 
 <template>
   <Teleport to="body">
-    <TransitionGroup name="toast" tag="section" class="toast-container" aria-live="polite" aria-label="알림">
+    <TransitionGroup
+      name="toast"
+      tag="section"
+      class="toast-container"
+      aria-live="polite"
+      aria-label="알림"
+    >
       <article
         v-for="toast in toastStore.toasts"
         :key="toast.id"
         class="toast"
         :class="`toast-${toast.type}`"
         role="status"
+        tabindex="0"
+        @click="toastStore.remove(toast.id)"
+        @keydown.enter="toastStore.remove(toast.id)"
+        @keydown.space.prevent="toastStore.remove(toast.id)"
       >
         <div class="toast-content">
           <span class="toast-indicator" aria-hidden="true"></span>
-          <strong class="toast-title">{{ toast.title || typeLabels[toast.type] }}</strong>
+          <!-- <strong class="toast-title">{{ toast.title || typeLabels[toast.type] }}</strong> -->
           <p class="toast-message">{{ toast.message }}</p>
         </div>
       </article>
@@ -56,7 +66,20 @@ const typeLabels = {
   box-shadow: 0 0.45rem 1.1rem rgba(0, 0, 0, 0.2);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
+  cursor: pointer;
   pointer-events: auto;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.toast:focus {
+  outline: none;
+}
+
+.toast:focus-visible {
+  outline: 2px solid var(--toast-accent, #48cfff);
+  outline-offset: 0.18rem;
 }
 
 .toast-success {
@@ -108,7 +131,7 @@ const typeLabels = {
 
 .toast-title::after {
   color: rgba(245, 249, 255, 0.42);
-  content: '·';
+  content: "·";
   margin-left: 0.45rem;
 }
 
@@ -132,7 +155,7 @@ const typeLabels = {
 
 .toast-enter-from,
 .toast-leave-to {
-  transform: translateY(calc(-100% - 2.5rem - env(safe-area-inset-top)));
+  transform: translateY(calc(-100% - 2rem - env(safe-area-inset-top)));
 }
 
 .toast-leave-active {
@@ -155,7 +178,7 @@ const typeLabels = {
 
 @media (max-width: 480px) {
   .toast-container {
-    width: calc(100vw - 2rem);
+    width: calc(100vw - 3rem);
   }
 }
 </style>

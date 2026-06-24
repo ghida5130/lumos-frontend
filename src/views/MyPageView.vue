@@ -6,6 +6,7 @@ import { postLogout } from "@/api/auth";
 import { clearAuthSession } from "@/services/authSession";
 import { useAuthStore } from "@/stores/auth";
 import { useToastStore } from "@/stores/toast";
+import googleIconUrl from "@/assets/images/commonIcon/google.svg";
 
 const router = useRouter();
 const authStore = useAuthStore();
@@ -63,7 +64,9 @@ const menuGroups = [
         </div>
         <div class="profile-copy">
           <h2>
-            <span v-if="isGoogleProvider" class="provider-badge">Google</span>
+            <span v-if="isGoogleProvider" class="provider-badge" aria-label="Google 계정">
+              <img :src="googleIconUrl" alt="" />
+            </span>
             <span>{{ authStore.nickname || "이름" }}</span>
           </h2>
           <p>{{ authStore.email }}</p>
@@ -195,12 +198,19 @@ const menuGroups = [
 
 .provider-badge {
   flex: 0 0 auto;
-  padding: 0.18rem 0.45rem;
-  color: #071321;
+  display: inline-grid;
+  place-items: center;
+  width: 1.35rem;
+  height: 1.35rem;
   background: #f7f9fc;
+  border: 1px solid rgba(7, 19, 33, 0.08);
   border-radius: 999px;
-  font-size: 0.62rem;
-  font-weight: 800;
+}
+
+.provider-badge img {
+  width: 0.9rem;
+  height: 0.9rem;
+  display: block;
 }
 
 .profile-copy p {

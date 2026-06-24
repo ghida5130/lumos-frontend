@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 import {
   deleteReview,
   deleteReviewLike,
@@ -7,51 +7,53 @@ import {
   patchReview,
   postReviewLike,
   uploadReviewImageToCloudinary,
-} from '@/api/review'
-import { useAuthStore } from '@/stores/auth'
-import { useToastStore } from '@/stores/toast'
+} from "@/api/review";
+import { useAuthStore } from "@/stores/auth";
+import { useToastStore } from "@/stores/toast";
 
-const PAGE_SIZE = 10
+const PAGE_SIZE = 10;
 
-const authStore = useAuthStore()
-const toastStore = useToastStore()
+const authStore = useAuthStore();
+const toastStore = useToastStore();
 
-const reviews = ref([])
-const page = ref(0)
-const isInitialLoading = ref(false)
-const isLoadingMore = ref(false)
-const hasMore = ref(true)
-const errorMessage = ref('')
-const pendingReviewLikes = ref(new Set())
-const loadMoreTarget = ref(null)
-const editingReview = ref(null)
-const deletingReview = ref(null)
-const editContent = ref('')
-const editImageFiles = ref([])
-const editImagePreviews = ref([])
-const isSubmittingEdit = ref(false)
-const isDeletingReview = ref(false)
-let observer = null
+const reviews = ref([]);
+const page = ref(0);
+const isInitialLoading = ref(false);
+const isLoadingMore = ref(false);
+const hasMore = ref(true);
+const errorMessage = ref("");
+const pendingReviewLikes = ref(new Set());
+const loadMoreTarget = ref(null);
+const editingReview = ref(null);
+const deletingReview = ref(null);
+const editContent = ref("");
+const editImageFiles = ref([]);
+const editImagePreviews = ref([]);
+const isSubmittingEdit = ref(false);
+const isDeletingReview = ref(false);
+let observer = null;
 
 const canLoadMore = computed(
   () => hasMore.value && !isInitialLoading.value && !isLoadingMore.value && !errorMessage.value,
-)
-const canSubmitEdit = computed(() => editContent.value.trim().length > 0 && !isSubmittingEdit.value)
+);
+const canSubmitEdit = computed(
+  () => editContent.value.trim().length > 0 && !isSubmittingEdit.value,
+);
 
 function formatCreatedAt(createdAt) {
   if (!createdAt) {
-    return ''
+    return "";
   }
 
-  return createdAt.replace('T', ' ').slice(0, 16)
+  return createdAt.replace("T", " ").slice(0, 16);
 }
 
 function getFallbackAvatarName(nickname) {
-  return nickname?.trim()?.slice(0, 1) || '?'
+  return nickname?.trim()?.slice(0, 1) || "?";
 }
 
 function normalizeImages(imageUrls) {
-  return Array.isArray(imageUrls) ? imageUrls.filter(Boolean) : []
+  return Array.isArray(imageUrls) ? imageUrls.filter(Boolean) : [];
 }
 
 function getReviewUserId(reviewData = {}) {
@@ -63,21 +65,21 @@ function getReviewUserId(reviewData = {}) {
     reviewData.user?.userId ??
     reviewData.user?.id ??
     null
-  )
+  );
 }
 
 function mapReview(reviewData, pageNumber, index) {
-  const images = normalizeImages(reviewData.imageUrls)
+  const images = normalizeImages(reviewData.imageUrls);
 
   return {
     feedKey: `${pageNumber}-${reviewData.reviewId}-${index}`,
     id: reviewData.reviewId,
     userId: getReviewUserId(reviewData),
-    placeName: reviewData.placeName || '장소 정보 없음',
-    author: reviewData.nickname || '익명',
-    profileImageUrl: reviewData.profileImageUrl || reviewData.profileImage || '',
+    placeName: reviewData.placeName || "장소 정보 없음",
+    author: reviewData.nickname || "익명",
+    profileImageUrl: reviewData.profileImageUrl || reviewData.profileImage || "",
     avatar: getFallbackAvatarName(reviewData.nickname),
-    content: reviewData.content || '',
+    content: reviewData.content || "",
     likeCount: reviewData.likeCount ?? 0,
     likedByMe: Boolean(reviewData.likedByMe),
     createdAt: formatCreatedAt(reviewData.createdAt),
@@ -85,11 +87,11 @@ function mapReview(reviewData, pageNumber, index) {
     images,
     currentImageIndex: 0,
     touchStartX: 0,
-  }
+  };
 }
 
 function isLocalPreview(preview) {
-  return preview.source === 'local'
+  return preview.source === "local";
 }
 
 function canEditReview(review) {
@@ -97,115 +99,119 @@ function canEditReview(review) {
     authStore.userId !== null &&
     review.userId !== null &&
     String(review.userId) === String(authStore.userId)
-  )
+  );
 }
 
 function resetEditForm() {
-  editContent.value = ''
-  editImageFiles.value = []
+  editContent.value = "";
+  editImageFiles.value = [];
 
-  editImagePreviews.value.filter(isLocalPreview).forEach((preview) => URL.revokeObjectURL(preview.url))
-  editImagePreviews.value = []
-  editingReview.value = null
+  editImagePreviews.value
+    .filter(isLocalPreview)
+    .forEach((preview) => URL.revokeObjectURL(preview.url));
+  editImagePreviews.value = [];
+  editingReview.value = null;
 }
 
 function openEditDialog(review) {
   if (!authStore.isLoggedIn) {
-    toastStore.warning('로그인이 필요합니다.')
-    return
+    toastStore.warning("로그인이 필요합니다.");
+    return;
   }
 
   if (!canEditReview(review)) {
-    return
+    return;
   }
 
-  resetEditForm()
-  editingReview.value = review
-  editContent.value = review.content
+  resetEditForm();
+  editingReview.value = review;
+  editContent.value = review.content;
   editImagePreviews.value = review.images.map((imageUrl, index) => ({
     id: `${review.id}-remote-${index}`,
     name: `리뷰 이미지 ${index + 1}`,
     url: imageUrl,
-    source: 'remote',
-  }))
+    source: "remote",
+  }));
 }
 
 function closeEditDialog({ force = false } = {}) {
   if (isSubmittingEdit.value && !force) {
-    return
+    return;
   }
 
-  resetEditForm()
+  resetEditForm();
 }
 
 function openDeleteDialog(review) {
   if (!authStore.isLoggedIn) {
-    toastStore.warning('로그인이 필요합니다.')
-    return
+    toastStore.warning("로그인이 필요합니다.");
+    return;
   }
 
   if (!canEditReview(review)) {
-    return
+    return;
   }
 
-  deletingReview.value = review
+  deletingReview.value = review;
 }
 
 function closeDeleteDialog() {
   if (isDeletingReview.value) {
-    return
+    return;
   }
 
-  deletingReview.value = null
+  deletingReview.value = null;
 }
 
 function handleEditImageChange(event) {
-  const files = Array.from(event.target.files ?? [])
-  const imageFiles = files.filter((file) => file.type.startsWith('image/'))
+  const files = Array.from(event.target.files ?? []);
+  const imageFiles = files.filter((file) => file.type.startsWith("image/"));
 
   if (files.length !== imageFiles.length) {
-    toastStore.warning('이미지 파일만 업로드할 수 있습니다.')
+    toastStore.warning("이미지 파일만 업로드할 수 있습니다.");
   }
 
-  editImagePreviews.value.filter(isLocalPreview).forEach((preview) => URL.revokeObjectURL(preview.url))
-  editImageFiles.value = imageFiles
+  editImagePreviews.value
+    .filter(isLocalPreview)
+    .forEach((preview) => URL.revokeObjectURL(preview.url));
+  editImageFiles.value = imageFiles;
   editImagePreviews.value = imageFiles.map((file) => ({
     id: `${file.name}-${file.lastModified}-${file.size}`,
     name: file.name,
     url: URL.createObjectURL(file),
-    source: 'local',
-  }))
-  event.target.value = ''
+    source: "local",
+  }));
+  event.target.value = "";
 }
 
 async function getSubmittedEditImageUrls() {
   if (!editImageFiles.value.length) {
-    return editImagePreviews.value.map((preview) => preview.url)
+    return editImagePreviews.value.map((preview) => preview.url);
   }
 
   const imageUrls = await Promise.all(
     editImageFiles.value.map(async (file) => {
-      const uploadResult = await uploadReviewImageToCloudinary(file)
+      const uploadResult = await uploadReviewImageToCloudinary(file);
 
-      return uploadResult.secure_url ?? uploadResult.url
+      return uploadResult.secure_url ?? uploadResult.url;
     }),
-  )
+  );
 
-  return imageUrls.filter(Boolean)
+  return imageUrls.filter(Boolean);
 }
 
 async function loadReviews(targetPage = 0) {
-  const isFirstPage = targetPage === 0
+  const isFirstPage = targetPage === 0;
 
   if (isFirstPage) {
-    isInitialLoading.value = true
-    errorMessage.value = ''
+    isInitialLoading.value = true;
+    errorMessage.value = "";
   } else {
     if (!canLoadMore.value) {
-      return
+      return;
     }
 
-    isLoadingMore.value = true
+    isLoadingMore.value = true;
   }
 
   try {
@@ -213,124 +219,128 @@ async function loadReviews(targetPage = 0) {
       page: targetPage,
       size: PAGE_SIZE,
       authenticated: authStore.isLoggedIn,
-    })
+    });
     const nextReviews = (result.content ?? []).map((review, index) =>
       mapReview(review, targetPage, index),
-    )
+    );
 
-    reviews.value = isFirstPage ? nextReviews : [...reviews.value, ...nextReviews]
-    page.value = targetPage
+    reviews.value = isFirstPage ? nextReviews : [...reviews.value, ...nextReviews];
+    page.value = targetPage;
 
-    hasMore.value = nextReviews.length > 0
+    hasMore.value = nextReviews.length > 0;
   } catch {
     if (isFirstPage) {
-      reviews.value = []
+      reviews.value = [];
     }
 
-    errorMessage.value = '리뷰를 불러오지 못했습니다.'
+    errorMessage.value = "리뷰를 불러오지 못했습니다.";
   } finally {
-    isInitialLoading.value = false
-    isLoadingMore.value = false
+    isInitialLoading.value = false;
+    isLoadingMore.value = false;
   }
 }
 
 function loadNextPage() {
   if (!canLoadMore.value) {
-    return
+    return;
   }
 
-  loadReviews(page.value + 1)
+  loadReviews(page.value + 1);
 }
 
 function showPreviousImage(review) {
-  review.currentImageIndex = Math.max(review.currentImageIndex - 1, 0)
+  review.currentImageIndex = Math.max(review.currentImageIndex - 1, 0);
 }
 
 function showNextImage(review) {
-  review.currentImageIndex = Math.min(review.currentImageIndex + 1, review.images.length - 1)
+  review.currentImageIndex = Math.min(review.currentImageIndex + 1, review.images.length - 1);
 }
 
 function handleTouchStart(review, event) {
-  review.touchStartX = event.touches[0]?.clientX ?? 0
+  review.touchStartX = event.touches[0]?.clientX ?? 0;
 }
 
 function handleTouchEnd(review, event) {
-  const touchEndX = event.changedTouches[0]?.clientX ?? 0
-  const diffX = review.touchStartX - touchEndX
+  const touchEndX = event.changedTouches[0]?.clientX ?? 0;
+  const diffX = review.touchStartX - touchEndX;
 
   if (Math.abs(diffX) < 40) {
-    return
+    return;
   }
 
   if (diffX > 0) {
-    showNextImage(review)
+    showNextImage(review);
   } else {
-    showPreviousImage(review)
+    showPreviousImage(review);
   }
 }
 
 async function toggleReviewLike(reviewId) {
   if (pendingReviewLikes.value.has(reviewId)) {
-    return
+    return;
   }
 
-  const targetReview = reviews.value.find((review) => review.id === reviewId)
+  const targetReview = reviews.value.find((review) => review.id === reviewId);
 
   if (!targetReview) {
-    return
+    return;
   }
 
-  const previousLikeCount = targetReview.likeCount
-  const previousLikedByMe = targetReview.likedByMe
-  pendingReviewLikes.value = new Set([...pendingReviewLikes.value, reviewId])
-  targetReview.likedByMe = !previousLikedByMe
-  targetReview.likeCount = Math.max(0, targetReview.likeCount + (previousLikedByMe ? -1 : 1))
+  const previousLikeCount = targetReview.likeCount;
+  const previousLikedByMe = targetReview.likedByMe;
+  pendingReviewLikes.value = new Set([...pendingReviewLikes.value, reviewId]);
+  targetReview.likedByMe = !previousLikedByMe;
+  targetReview.likeCount = Math.max(0, targetReview.likeCount + (previousLikedByMe ? -1 : 1));
 
   try {
     if (previousLikedByMe) {
-      await deleteReviewLike(reviewId)
-      toastStore.success('리뷰 좋아요가 취소되었습니다.')
+      await deleteReviewLike(reviewId);
+      toastStore.success("리뷰 좋아요가 취소되었습니다.");
     } else {
-      await postReviewLike(reviewId)
-      toastStore.success('리뷰 좋아요가 추가되었습니다.')
+      await postReviewLike(reviewId);
+      toastStore.success("리뷰 좋아요가 추가되었습니다.");
     }
   } catch (error) {
-    targetReview.likeCount = previousLikeCount
-    targetReview.likedByMe = previousLikedByMe
+    targetReview.likeCount = previousLikeCount;
+    targetReview.likedByMe = previousLikedByMe;
 
     if (error.statusCode === 401) {
-      toastStore.warning('로그인이 필요합니다.')
+      toastStore.warning("로그인이 필요합니다.");
     } else if (error.statusCode === 409) {
-      toastStore.info(previousLikedByMe ? '이미 좋아요가 취소되었습니다.' : '이미 좋아요 처리되었습니다.')
+      toastStore.info(
+        previousLikedByMe ? "이미 좋아요가 취소되었습니다." : "이미 좋아요 처리되었습니다.",
+      );
     } else if (error.statusCode === 500) {
-      toastStore.error('서버 내부 오류가 발생했습니다.')
+      toastStore.error("서버 내부 오류가 발생했습니다.");
     } else {
-      toastStore.error(previousLikedByMe ? '리뷰 좋아요 취소에 실패했습니다.' : '리뷰 좋아요 처리에 실패했습니다.')
+      toastStore.error(
+        previousLikedByMe ? "리뷰 좋아요 취소에 실패했습니다." : "리뷰 좋아요 처리에 실패했습니다.",
+      );
     }
   } finally {
-    const nextPendingLikes = new Set(pendingReviewLikes.value)
-    nextPendingLikes.delete(reviewId)
-    pendingReviewLikes.value = nextPendingLikes
+    const nextPendingLikes = new Set(pendingReviewLikes.value);
+    nextPendingLikes.delete(reviewId);
+    pendingReviewLikes.value = nextPendingLikes;
   }
 }
 
 async function submitEditReview() {
   if (!editingReview.value || !canSubmitEdit.value) {
-    return
+    return;
   }
 
-  const targetReview = editingReview.value
-  isSubmittingEdit.value = true
-  toastStore.info('리뷰를 수정하는 중입니다.')
+  const targetReview = editingReview.value;
+  isSubmittingEdit.value = true;
+  toastStore.info("리뷰를 수정하는 중입니다.");
 
   try {
-    const imageUrls = await getSubmittedEditImageUrls()
-    const trimmedContent = editContent.value.trim()
+    const imageUrls = await getSubmittedEditImageUrls();
+    const trimmedContent = editContent.value.trim();
 
     await patchReview(targetReview.id, {
       content: trimmedContent,
       imageUrls,
-    })
+    });
 
     reviews.value = reviews.value.map((review) =>
       review.feedKey === targetReview.feedKey
@@ -341,76 +351,76 @@ async function submitEditReview() {
             currentImageIndex: 0,
           }
         : review,
-    )
+    );
 
-    toastStore.success('리뷰가 수정되었습니다.')
-    closeEditDialog({ force: true })
+    toastStore.success("리뷰가 수정되었습니다.");
+    closeEditDialog({ force: true });
   } catch (error) {
     if (error.statusCode === 401) {
-      toastStore.warning('로그인이 필요합니다.')
+      toastStore.warning("로그인이 필요합니다.");
     } else {
-      toastStore.error('리뷰 수정에 실패했습니다.')
+      toastStore.error("리뷰 수정에 실패했습니다.");
     }
   } finally {
-    isSubmittingEdit.value = false
+    isSubmittingEdit.value = false;
   }
 }
 
 async function confirmDeleteReview() {
   if (!deletingReview.value || isDeletingReview.value) {
-    return
+    return;
   }
 
-  const targetReview = deletingReview.value
-  isDeletingReview.value = true
-  toastStore.info('리뷰를 삭제하는 중입니다.')
+  const targetReview = deletingReview.value;
+  isDeletingReview.value = true;
+  toastStore.info("리뷰를 삭제하는 중입니다.");
 
   try {
-    await deleteReview(targetReview.id)
-    reviews.value = reviews.value.filter((review) => review.feedKey !== targetReview.feedKey)
-    toastStore.success('리뷰가 삭제되었습니다.')
-    deletingReview.value = null
+    await deleteReview(targetReview.id);
+    reviews.value = reviews.value.filter((review) => review.feedKey !== targetReview.feedKey);
+    toastStore.success("리뷰가 삭제되었습니다.");
+    deletingReview.value = null;
   } catch (error) {
     if (error.statusCode === 401) {
-      toastStore.warning('로그인이 필요합니다.')
+      toastStore.warning("로그인이 필요합니다.");
     } else {
-      toastStore.error('리뷰 삭제에 실패했습니다.')
+      toastStore.error("리뷰 삭제에 실패했습니다.");
     }
   } finally {
-    isDeletingReview.value = false
+    isDeletingReview.value = false;
   }
 }
 
 onMounted(() => {
-  loadReviews(0)
+  loadReviews(0);
 
   observer = new IntersectionObserver(
     ([entry]) => {
       if (entry.isIntersecting) {
-        loadNextPage()
+        loadNextPage();
       }
     },
     {
-      rootMargin: '240px 0px',
+      rootMargin: "240px 0px",
     },
-  )
+  );
 
   if (loadMoreTarget.value) {
-    observer.observe(loadMoreTarget.value)
+    observer.observe(loadMoreTarget.value);
   }
-})
+});
 
 onBeforeUnmount(() => {
-  observer?.disconnect()
-  editImagePreviews.value.filter(isLocalPreview).forEach((preview) => URL.revokeObjectURL(preview.url))
-})
+  observer?.disconnect();
+  editImagePreviews.value
+    .filter(isLocalPreview)
+    .forEach((preview) => URL.revokeObjectURL(preview.url));
+});
 </script>
 
 <template>
   <main class="feed-view">
     <section class="feed-list">
-      <h2 class="section-title">여행자들의 새로운 이야기</h2>
-
       <section v-if="isInitialLoading" class="feed-skeleton-list" aria-label="피드 로딩 중">
         <article v-for="index in 3" :key="index" class="feed-skeleton">
           <header>
@@ -444,7 +454,9 @@ onBeforeUnmount(() => {
               :src="review.profileImageUrl"
               :alt="`${review.author} 프로필`"
             />
-            <span v-else class="avatar avatar-fallback" aria-hidden="true">{{ review.avatar }}</span>
+            <span v-else class="avatar avatar-fallback" aria-hidden="true">{{
+              review.avatar
+            }}</span>
 
             <div class="author-info">
               <strong>{{ review.author }}</strong>
@@ -521,7 +533,7 @@ onBeforeUnmount(() => {
               >
                 삭제
               </button>
-              <span class="like-count">{{ review.likeCount }}</span>
+
               <button
                 class="like-button"
                 :class="{ 'like-button--active': review.likedByMe }"
@@ -534,14 +546,16 @@ onBeforeUnmount(() => {
                     d="M20.8 4.6c-1.9-1.8-4.9-1.7-6.7.2L12 7l-2.1-2.2C8.1 2.9 5.1 2.8 3.2 4.6 1.1 6.6 1 9.9 3 12l9 8.7 9-8.7c2-2.1 1.9-5.4-.2-7.4Z"
                   />
                 </svg>
-                좋아요
+                <span class="like-count">{{ review.likeCount }}</span>
               </button>
             </footer>
           </div>
         </article>
       </template>
 
-      <p v-if="isLoadingMore" class="status-message status-message--small">리뷰를 더 불러오는 중입니다.</p>
+      <p v-if="isLoadingMore" class="status-message status-message--small">
+        리뷰를 더 불러오는 중입니다.
+      </p>
       <div ref="loadMoreTarget" class="load-more-target" aria-hidden="true"></div>
     </section>
 
@@ -596,7 +610,7 @@ onBeforeUnmount(() => {
             :disabled="!canSubmitEdit"
             @click="submitEditReview"
           >
-            {{ isSubmittingEdit ? '수정 중...' : '수정하기' }}
+            {{ isSubmittingEdit ? "수정 중..." : "수정하기" }}
           </button>
         </footer>
       </article>
@@ -617,7 +631,7 @@ onBeforeUnmount(() => {
             :disabled="isDeletingReview"
             @click="confirmDeleteReview"
           >
-            {{ isDeletingReview ? '삭제 중...' : '삭제' }}
+            {{ isDeletingReview ? "삭제 중..." : "삭제" }}
           </button>
         </footer>
       </article>
@@ -836,6 +850,10 @@ onBeforeUnmount(() => {
   font-weight: 800;
 }
 
+.like-button:not(.like-button--active) .like-count {
+  color: #071321;
+}
+
 .edit-button,
 .delete-button {
   min-height: 2rem;
@@ -1001,7 +1019,7 @@ onBeforeUnmount(() => {
 }
 
 .edit-form-field textarea,
-.edit-form-field input[type='file'] {
+.edit-form-field input[type="file"] {
   width: 100%;
   color: #f7f9fc;
   background: #121a25;
@@ -1021,7 +1039,7 @@ onBeforeUnmount(() => {
   color: #657286;
 }
 
-.edit-form-field input[type='file'] {
+.edit-form-field input[type="file"] {
   min-height: 2.75rem;
   padding: 0.7rem 0.85rem;
 }
@@ -1200,7 +1218,7 @@ onBeforeUnmount(() => {
   position: absolute;
   inset: 0;
   background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.08), transparent);
-  content: '';
+  content: "";
   animation: skeletonSweep 1.25s ease-in-out infinite;
 }
 
