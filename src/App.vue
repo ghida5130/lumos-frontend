@@ -14,7 +14,7 @@ const route = useRoute();
 const authStore = useAuthStore();
 const showSplash = ref(true);
 const showHeader = computed(() => !route.meta.hideHeader);
-const showBottomBar = computed(() => !route.meta.hideBottomBar);
+const showBottomBar = computed(() => !showSplash.value && !route.meta.hideBottomBar);
 const pageTransitionName = computed(() => (route.name === "ai" ? "" : "page"));
 
 onMounted(() => {
@@ -33,15 +33,7 @@ onMounted(() => {
       <img class="brand-panel__logo" src="/icons/web-app-manifest-192x192.png" alt="" />
       <p class="brand-panel__eyebrow">Night travel guide</p>
       <h1 class="brand-panel__title">LUMOS</h1>
-      <p class="brand-panel__description">
-        밤에도 걱정 없이 떠날 수 있도록 야간 명소, 코스, 리뷰를 한곳에 모아 보여주는
-        모바일 여행 서비스입니다.
-      </p>
-      <ul class="brand-panel__points">
-        <li>지역별 야간 관광지 탐색</li>
-        <li>지도 기반 장소 확인</li>
-        <li>관심 장소 저장과 코스 계획</li>
-      </ul>
+      <p class="brand-panel__description">밤에도 고민 없이, 나에게 맞는 여행을 설계하다.</p>
     </aside>
 
     <main class="mobile-app-frame" aria-label="LUMOS app preview">
@@ -210,7 +202,7 @@ onMounted(() => {
   .brand-panel__title {
     margin: 0;
     color: #f5faff;
-    font-size: 4rem;
+    font-size: 3.5rem;
     font-weight: 900;
     line-height: 0.95;
   }

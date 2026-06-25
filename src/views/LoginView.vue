@@ -8,6 +8,7 @@ import { computed, ref } from "vue";
 import { useMutation } from "@tanstack/vue-query";
 import { RouterLink, useRoute, useRouter } from "vue-router";
 import { setAuthSession } from "@/services/authSession";
+import googleIcon from "@/assets/images/commonIcon/google.svg";
 
 const route = useRoute();
 const router = useRouter();
@@ -110,7 +111,10 @@ function submitLogin() {
         <button type="submit" :disabled="!canSubmit">
           {{ loginMutation.isPending.value ? "로그인 중..." : "로그인" }}
         </button>
-        <a class="google-login-link" :href="googleLoginUrl">구글 로그인</a>
+        <a class="google-login-link" :href="googleLoginUrl">
+          <img class="google-login-icon" :src="googleIcon" alt="" aria-hidden="true" />
+          구글 로그인
+        </a>
       </form>
 
       <RouterLink class="signup-link" :to="{ name: 'signup' }">회원가입</RouterLink>
@@ -244,6 +248,7 @@ button:disabled {
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 0.55rem;
   min-height: 3rem;
   color: #dce5ef;
   background: #20262d;
@@ -251,5 +256,11 @@ button:disabled {
   border-radius: 0.7rem;
   font-size: 0.95rem;
   font-weight: 800;
+}
+
+.google-login-icon {
+  flex: 0 0 auto;
+  width: 1.25rem;
+  height: 1.25rem;
 }
 </style>

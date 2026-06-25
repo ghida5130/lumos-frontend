@@ -11,7 +11,7 @@
 .app-splash {
   position: fixed;
   inset: 0;
-  z-index: 2000;
+  z-index: 10000;
   display: grid;
   place-items: center;
   align-content: center;

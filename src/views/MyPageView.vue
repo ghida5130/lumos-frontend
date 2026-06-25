@@ -76,7 +76,7 @@ const menuGroups = [
       <RouterLink class="edit-profile-button" :to="{ name: 'edit-profile' }"
         >프로필 수정하기</RouterLink
       >
-      <button class="toast-test-button" type="button" @click="showToastTest">토스트 테스트</button>
+      <!-- <button class="toast-test-button" type="button" @click="showToastTest">토스트 테스트</button> -->
     </section>
 
     <nav class="mypage-menu">

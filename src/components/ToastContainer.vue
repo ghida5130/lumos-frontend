@@ -2,13 +2,6 @@
 import { useToastStore } from "@/stores/toast";
 
 const toastStore = useToastStore();
-
-const typeLabels = {
-  success: "성공",
-  error: "오류",
-  warning: "주의",
-  info: "알림",
-};
 </script>
 
 <template>
@@ -155,7 +148,7 @@ const typeLabels = {
 
 .toast-enter-from,
 .toast-leave-to {
-  transform: translateY(calc(-100% - 2rem - env(safe-area-inset-top)));
+  transform: translateY(calc(-100% - 6rem - env(safe-area-inset-top)));
 }
 
 .toast-leave-active {
@@ -184,6 +177,8 @@ const typeLabels = {
 
 @media (min-width: 900px) {
   .toast-container {
+    /* PC버전에서 내려오는 정도 */
+    top: calc(3rem + env(safe-area-inset-top));
     left: calc(50% + 12.5rem + clamp(1.5rem, 3.5vw, 3rem));
     width: min(calc(32rem - 2rem), 21rem);
   }
