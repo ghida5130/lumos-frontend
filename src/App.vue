@@ -1,20 +1,33 @@
 <script setup>
-import { computed } from 'vue'
-import { RouterView } from 'vue-router'
-import { useRoute } from 'vue-router'
-import BottomBar from './components/BottomBar.vue'
-import Header from './components/Header.vue'
-import ToastContainer from './components/ToastContainer.vue'
-import { useAuthStore } from './stores/auth'
+import { computed, onMounted, ref } from "vue";
+import { RouterView } from "vue-router";
+import { useRoute } from "vue-router";
+import BottomBar from "./components/BottomBar.vue";
+import Header from "./components/Header.vue";
+import AppSplash from "./components/AppSplash.vue";
+import ToastContainer from "./components/ToastContainer.vue";
+import { useAuthStore } from "./stores/auth";
 
-const route = useRoute()
-const authStore = useAuthStore()
-const showHeader = computed(() => !route.meta.hideHeader)
-const showBottomBar = computed(() => !route.meta.hideBottomBar)
-const pageTransitionName = computed(() => (route.name === 'ai' ? '' : 'page'))
+const SPLASH_DURATION_MS = 2000;
+
+const route = useRoute();
+const authStore = useAuthStore();
+const showSplash = ref(true);
+const showHeader = computed(() => !route.meta.hideHeader);
+const showBottomBar = computed(() => !route.meta.hideBottomBar);
+const pageTransitionName = computed(() => (route.name === "ai" ? "" : "page"));
+
+onMounted(() => {
+  window.setTimeout(() => {
+    showSplash.value = false;
+  }, SPLASH_DURATION_MS);
+});
 </script>
 
 <template>
+  <Transition name="app-splash">
+    <AppSplash v-if="showSplash" />
+  </Transition>
   <Header v-if="showHeader" />
   <RouterView v-slot="{ Component, route: currentRoute }">
     <Transition :name="pageTransitionName" mode="out-in">
@@ -108,6 +121,14 @@ const pageTransitionName = computed(() => (route.name === 'ai' ? '' : 'page'))
 
 .auth-status-enter-from,
 .auth-status-leave-to {
+  opacity: 0;
+}
+
+.app-splash-leave-active {
+  transition: opacity 0.28s ease;
+}
+
+.app-splash-leave-to {
   opacity: 0;
 }
 

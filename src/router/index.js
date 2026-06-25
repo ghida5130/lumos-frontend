@@ -15,7 +15,7 @@ const router = createRouter({
       name: "home",
       component: HomeView,
       meta: {
-        headerTitle: "LUMOS",
+        headerTitle: "Lumos",
         showBackButton: false,
       },
     },
