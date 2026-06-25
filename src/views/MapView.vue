@@ -957,4 +957,11 @@ onBeforeUnmount(() => {
     border-bottom: 0;
   }
 }
+
+@media (min-width: 900px) {
+  .map-view {
+    position: absolute;
+    inset: 3rem 0 0;
+  }
+}
 </style>

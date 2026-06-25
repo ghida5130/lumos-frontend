@@ -181,4 +181,11 @@ const typeLabels = {
     width: calc(100vw - 3rem);
   }
 }
+
+@media (min-width: 900px) {
+  .toast-container {
+    left: calc(50% + 12.5rem + clamp(1.5rem, 3.5vw, 3rem));
+    width: min(calc(32rem - 2rem), 21rem);
+  }
+}
 </style>

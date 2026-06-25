@@ -1756,4 +1756,65 @@ onBeforeUnmount(() => {
     grid-template-columns: repeat(5, minmax(0, 1fr));
   }
 }
+
+@media (min-width: 900px) {
+  .ai-view {
+    position: absolute;
+    inset: 3rem 0 0;
+    z-index: 20;
+  }
+
+  .conversation {
+    width: 100%;
+    max-width: none;
+    padding-right: 1.25rem;
+    padding-left: 1.25rem;
+  }
+
+  .message-row {
+    max-width: min(86%, 28rem);
+  }
+
+  .city-options {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .prompt-form,
+  .analysis-bar {
+    position: absolute;
+    right: 1rem;
+    bottom: 1rem;
+    left: 1rem;
+    width: auto;
+    max-width: none;
+  }
+
+  .course-modal-backdrop,
+  .place-detail-dim {
+    top: 2rem;
+    right: auto;
+    bottom: 2rem;
+    left: calc(50% + 12.5rem + clamp(1.5rem, 3.5vw, 3rem) - 16rem);
+    width: 32rem;
+    border-radius: 2rem;
+  }
+
+  .course-modal-backdrop {
+    overflow: hidden;
+  }
+
+  .course-modal {
+    width: min(100%, 30rem);
+    max-height: calc(100vh - 6rem);
+  }
+
+  .place-detail-modal {
+    top: 50%;
+    left: calc(50% + 12.5rem + clamp(1.5rem, 3.5vw, 3rem) - 15rem);
+    width: 30rem;
+    max-height: calc(100vh - 7rem);
+    animation: none;
+    transform: translateY(-50%);
+  }
+}
 </style>

@@ -1023,4 +1023,22 @@ onBeforeUnmount(() => {
     padding-left: 1.12rem;
   }
 }
+
+@media (min-width: 900px) {
+  .course-sheet-backdrop {
+    top: 2rem;
+    right: auto;
+    bottom: 2rem;
+    left: calc(50% + 12.5rem + clamp(1.5rem, 3.5vw, 3rem) - 16rem);
+    width: 32rem;
+    overflow: hidden;
+    border-radius: 2rem;
+  }
+
+  .course-sheet {
+    width: 100%;
+    height: min(calc(100vh - 5.6rem), 44rem);
+    max-height: calc(100vh - 5.6rem);
+  }
+}
 </style>
