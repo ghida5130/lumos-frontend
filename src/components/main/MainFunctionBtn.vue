@@ -1,15 +1,22 @@
 <script setup>
-import mapIcon from "@/assets/images/commonIcon/map.svg";
+import nightIcon from "@/assets/images/commonIcon/night-view.svg";
 import searchIcon from "@/assets/images/commonIcon/search.svg";
-import eventIcon from "@/assets/images/commonIcon/event.svg";
-import infoIcon from "@/assets/images/commonIcon/info.svg";
+import bedIcon from "@/assets/images/commonIcon/bed.svg";
+import foodIcon from "@/assets/images/commonIcon/food.svg";
 
 const functionButtons = [
-  { name: "지도adjofajsifoaser", icon: mapIcon, color: "#111B2C", to: "/list" },
-  { name: "검색", icon: searchIcon, color: "#17243B", to: "/list" },
-  { name: "이벤트", icon: eventIcon, color: "#1C2E4B", to: "/" },
-  { name: "정보", icon: infoIcon, color: "#283E65", to: "/" },
+  { name: "검색", icon: searchIcon, color: "#111B2C", to: "/list" },
+  { name: "관광지", icon: nightIcon, color: "#17243B", to: "/list?category=관광지" },
+  { name: "숙소", icon: bedIcon, color: "#1C2E4B", to: "/list?category=숙소" },
+  { name: "맛집", icon: foodIcon, color: "#283E65", to: "/list?category=맛집" },
 ];
+
+// const functionButtons = [
+//   { name: "지도", icon: mapIcon, color: "#111B2C", to: "/list" },
+//   { name: "검색", icon: searchIcon, color: "#17243B", to: "/list" },
+//   { name: "이벤트", icon: eventIcon, color: "#1C2E4B", to: "/" },
+//   { name: "공지", icon: infoIcon, color: "#283E65", to: "/" },
+// ];
 </script>
 
 <template>

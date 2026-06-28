@@ -118,14 +118,13 @@ function loadGoogleMaps() {
   })
 }
 
-function createCoursePin(order) {
+function createCoursePin() {
   const svg = `
     <svg width="34" height="42" viewBox="0 0 34 42" xmlns="http://www.w3.org/2000/svg">
       <filter id="shadow" x="-30%" y="-20%" width="160%" height="160%">
         <feDropShadow dx="0" dy="3" stdDeviation="3" flood-color="#000000" flood-opacity="0.35"/>
       </filter>
       <path filter="url(#shadow)" d="M17 2C9.8 2 4 7.8 4 15c0 9.7 13 25 13 25s13-15.3 13-25C30 7.8 24.2 2 17 2Z" fill="#8cddff" stroke="#071321" stroke-width="2"/>
-      <text x="17" y="19" dominant-baseline="middle" text-anchor="middle" fill="#071321" font-family="Arial, sans-serif" font-size="13" font-weight="800">${order}</text>
     </svg>
   `
 
@@ -133,6 +132,7 @@ function createCoursePin(order) {
     url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`,
     scaledSize: new window.google.maps.Size(34, 42),
     anchor: new window.google.maps.Point(17, 42),
+    labelOrigin: new window.google.maps.Point(17, 17),
   }
 }
 
@@ -198,7 +198,14 @@ async function renderMap() {
         position,
         map,
         title: place.name,
-        icon: createCoursePin(place.order ?? index + 1),
+        icon: createCoursePin(),
+        label: {
+          text: String(place.order ?? index + 1),
+          color: '#071321',
+          fontFamily: 'SUIT, Arial, sans-serif',
+          fontSize: '13px',
+          fontWeight: '800',
+        },
         zIndex: 20 + index,
       })
     })
@@ -267,6 +274,14 @@ function goToPlaceDetail(placeId) {
   router.push({ name: 'detail', query: { id: placeId } })
 }
 
+function goToCourseEdit() {
+  const courseId = courseDetail.value?.id ?? selectedCourse.value?.id
+
+  if (!courseId) return
+
+  router.push({ name: 'course-edit', query: { courseId } })
+}
+
 onMounted(() => {
   loadCourses()
 })
@@ -300,15 +315,18 @@ onBeforeUnmount(() => {
           <span class="course-row-main">
             <span class="course-row-kicker">
               <span class="city-chip">{{ course.cityName }}</span>
-              <span>{{ course.createdAt }}</span>
+              <span class="course-created-at">{{ course.createdAt }}</span>
             </span>
             <strong>{{ course.title }}</strong>
             <small>{{ course.description }}</small>
           </span>
           <span class="course-row-side">
             <span class="theme-chip">{{ course.theme }}</span>
-            <strong>{{ course.placeCount }}곳</strong>
             <small>{{ course.duration }}</small>
+            <span class="place-count">{{ course.placeCount }}곳</span>
+            <svg class="chevron-icon" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="m9 18 6-6-6-6" />
+            </svg>
           </span>
         </button>
       </section>
@@ -405,6 +423,10 @@ onBeforeUnmount(() => {
               <span>저장 {{ courseDetail.createdAt }}</span>
               <span v-if="courseDetail.updatedAt">수정 {{ courseDetail.updatedAt }}</span>
             </footer>
+
+            <button type="button" class="course-edit-button" @click="goToCourseEdit">
+              코스 수정하기
+            </button>
           </template>
         </section>
       </div>
@@ -415,7 +437,7 @@ onBeforeUnmount(() => {
 <style scoped>
 .saved-courses-view {
   min-height: calc(100vh - 3rem);
-  padding: 1rem 0 6.5rem;
+  padding: 0.75rem 0 6.5rem;
   color: #f7f9fc;
 }
 
@@ -433,28 +455,20 @@ onBeforeUnmount(() => {
 }
 
 .saved-courses-heading {
-  position: relative;
-  margin-top: 0.35rem;
-  margin-bottom: 1rem;
-  padding: 0.15rem 0 0.65rem;
+  margin-top: 0.45rem;
+  margin-bottom: 0.75rem;
 }
 
 .saved-courses-heading p {
-  margin-bottom: 0.45rem;
-  color: #8fe6c8;
-  font-size: 0.72rem;
-  font-weight: 800;
+  margin-bottom: 0.4rem;
+  color: #91a0b4;
+  font-size: 0.78rem;
+  font-weight: 400;
 }
 
 .saved-courses-heading h2 {
-  color: #f4f8fc;
-  font-size: 1.42rem;
-  font-weight: 850;
-  line-height: 1.25;
-}
-
-.saved-courses-heading::after {
-  display: none;
+  font-size: 1.35rem;
+  font-weight: 700;
 }
 
 .status-message {
@@ -466,60 +480,54 @@ onBeforeUnmount(() => {
 
 .course-list {
   display: grid;
-  gap: 0.55rem;
   overflow: hidden;
   width: 100%;
-  padding: 0.15rem 0;
-  background: transparent;
+  background: rgba(15, 23, 34, 0.46);
+  border-top: 1px solid rgba(126, 143, 165, 0.16);
+  border-bottom: 1px solid rgba(126, 143, 165, 0.16);
 }
 
 .course-row + .course-row {
-  border-top: 0;
+  border-top: 1px solid rgba(126, 143, 165, 0.12);
 }
 
 .course-row {
   display: grid;
-  grid-template-columns: 2.35rem minmax(0, 1fr) auto;
-  gap: 0.8rem;
+  grid-template-columns: 3.75rem minmax(0, 1fr) auto;
+  gap: 0.7rem;
   align-items: center;
-  position: relative;
   width: 100%;
-  min-height: 5.75rem;
-  padding: 0.82rem 1rem;
-  overflow: hidden;
+  min-height: 4.9rem;
+  padding: 0.62rem 1rem;
   color: inherit;
-  background: rgba(18, 29, 41, 0.82);
-  border: 1px solid rgba(126, 143, 165, 0.15);
-  border-right: 0;
-  border-left: 0;
+  background: transparent;
+  border: 0;
   text-align: left;
   transition:
-    background-color 0.18s ease,
-    border-color 0.18s ease;
+    background 0.2s ease,
+    padding 0.2s ease;
 }
 
 .course-row:hover,
 .course-row:focus-visible {
-  background: rgba(33, 45, 59, 0.92);
-  border-color: rgba(126, 143, 165, 0.28);
+  background: rgba(33, 45, 59, 0.76);
   outline: none;
-}
-
-.course-row::after {
-  display: none;
+  padding-left: 1.08rem;
 }
 
 .course-row-index {
   display: grid;
-  width: 2.35rem;
-  height: 2.35rem;
+  width: 3.75rem;
+  aspect-ratio: 1;
+  color: #dff7f0;
+  background:
+    linear-gradient(135deg, rgba(127, 199, 178, 0.22), rgba(72, 115, 147, 0.12)),
+    #101a26;
+  border: 1px solid rgba(126, 143, 165, 0.16);
+  border-radius: 0.5rem;
+  font-size: 0.9rem;
+  font-weight: 800;
   place-items: center;
-  color: #071321;
-  background: #8cddff;
-  border-radius: 50%;
-  box-shadow: 0 0.45rem 1rem rgba(72, 207, 255, 0.22);
-  font-size: 0.72rem;
-  font-weight: 950;
 }
 
 .course-row-main,
@@ -529,13 +537,12 @@ onBeforeUnmount(() => {
 }
 
 .course-row-main {
-  gap: 0.35rem;
+  gap: 0.28rem;
 }
 
 .course-row-main strong,
 .course-row-main small,
 .course-row-side span,
-.course-row-side strong,
 .course-row-side small,
 .course-row-kicker span {
   overflow: hidden;
@@ -548,37 +555,56 @@ onBeforeUnmount(() => {
   align-items: center;
   gap: 0.45rem;
   min-width: 0;
-  color: #78879a;
+  color: #7f8da0;
   font-size: 0.62rem;
 }
 
 .course-row-main strong {
   color: #eef4fb;
-  font-size: 0.94rem;
-  font-weight: 850;
+  font-size: 0.88rem;
+  font-weight: 700;
 }
 
 .course-row-main small {
-  color: #a6b3c4;
-  font-size: 0.74rem;
-  line-height: 1.35;
+  display: -webkit-box;
+  color: #9eabbc;
+  font-size: 0.72rem;
+  line-height: 1.32;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 
 .course-row-side {
+  display: grid;
+  grid-template-columns: auto 0.95rem;
+  align-items: center;
   justify-items: end;
-  gap: 0.32rem;
-  max-width: 7.3rem;
+  gap: 0.3rem 0.45rem;
+  max-width: 6.7rem;
   color: #90a0b3;
 }
 
-.course-row-side strong {
-  color: #f4f8fc;
-  font-size: 0.86rem;
-  font-weight: 900;
+.course-row-side small {
+  grid-column: 1;
+  font-size: 0.62rem;
 }
 
-.course-row-side small {
-  font-size: 0.66rem;
+.place-count {
+  grid-column: 1;
+  color: #8fe6c8;
+  font-size: 0.62rem;
+  font-weight: 800;
+}
+
+.chevron-icon {
+  grid-column: 2;
+  grid-row: 1 / span 3;
+  width: 0.95rem;
+  fill: none;
+  stroke: #728196;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
 }
 
 .city-chip,
@@ -586,11 +612,11 @@ onBeforeUnmount(() => {
   display: inline-flex;
   align-items: center;
   max-width: 100%;
-  min-height: 1.35rem;
-  padding: 0 0.45rem;
+  min-height: 1.3rem;
+  padding: 0 0.42rem;
   overflow: hidden;
-  border-radius: 0.35rem;
-  font-size: 0.62rem;
+  border-radius: 999px;
+  font-size: 0.6rem;
   font-weight: 700;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -604,9 +630,10 @@ onBeforeUnmount(() => {
 }
 
 .theme-chip {
-  color: #c7d0dc;
-  background: rgba(255, 255, 255, 0.055);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  grid-column: 1;
+  color: #cdebe4;
+  background: rgba(127, 199, 178, 0.12);
+  border: 1px solid rgba(127, 199, 178, 0.22);
 }
 
 .course-sheet-backdrop {
@@ -905,6 +932,27 @@ onBeforeUnmount(() => {
   font-size: 0.7rem;
 }
 
+.course-edit-button {
+  display: grid;
+  width: 100%;
+  min-height: 3rem;
+  margin-top: 1rem;
+  color: #071321;
+  background: #8cddff;
+  border: 0;
+  border-radius: 0.72rem;
+  box-shadow: 0 0.65rem 1.5rem rgba(72, 207, 255, 0.2);
+  font-size: 0.9rem;
+  font-weight: 900;
+  place-items: center;
+}
+
+.course-edit-button:hover,
+.course-edit-button:focus-visible {
+  background: #a2e4ff;
+  outline: none;
+}
+
 .empty-state {
   margin-top: 4rem;
   padding: 2rem 1rem;
@@ -949,17 +997,18 @@ onBeforeUnmount(() => {
 
 @media (max-width: 430px) {
   .course-row {
-    grid-template-columns: 2.35rem minmax(0, 1fr);
+    grid-template-columns: 3.35rem minmax(0, 1fr) auto;
+    gap: 0.55rem;
+    padding-right: 0.75rem;
+    padding-left: 0.75rem;
+  }
+
+  .course-row-index {
+    width: 3.35rem;
   }
 
   .course-row-side {
-    grid-column: 2;
-    justify-items: start;
-    max-width: 100%;
-  }
-
-  .course-row::after {
-    display: none;
+    max-width: 5.7rem;
   }
 
   .sheet-stats,
@@ -969,16 +1018,27 @@ onBeforeUnmount(() => {
 }
 
 @media (min-width: 640px) {
-  .course-list {
-    gap: 0.65rem;
-    padding-right: 0.6rem;
-    padding-left: 0.6rem;
+  .course-row:hover,
+  .course-row:focus-visible {
+    padding-left: 1.12rem;
+  }
+}
+
+@media (min-width: 900px) {
+  .course-sheet-backdrop {
+    top: 2rem;
+    right: auto;
+    bottom: 2rem;
+    left: calc(50% + 12.5rem + clamp(1.5rem, 3.5vw, 3rem) - 16rem);
+    width: 32rem;
+    overflow: hidden;
+    border-radius: 2rem;
   }
 
-  .course-row {
-    border-right: 1px solid rgba(126, 143, 165, 0.15);
-    border-left: 1px solid rgba(126, 143, 165, 0.15);
-    border-radius: 0.95rem;
+  .course-sheet {
+    width: 100%;
+    height: min(calc(100vh - 5.6rem), 44rem);
+    max-height: calc(100vh - 5.6rem);
   }
 }
 </style>

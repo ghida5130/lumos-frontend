@@ -1,5 +1,6 @@
+import axios from 'axios'
 import { privateApiClient } from '@/lib/http/privateApiClient'
-import { del, get, patch, request } from '@/lib/http/request'
+import { get, patch, post, request } from '@/lib/http/request'
 
 // 현재 로그인한 사용자의 정보를 조회한다.
 export async function getUserInfo() {
@@ -9,6 +10,11 @@ export async function getUserInfo() {
 // 현재 사용자가 즐겨찾기한 장소 목록을 조회한다.
 export async function getUserFavorites() {
   return get(privateApiClient, '/api/users/me/favorite')
+}
+
+// 현재 사용자가 작성한 리뷰 목록을 조회한다.
+export async function getUserReviews() {
+  return get(privateApiClient, '/api/users/me/review')
 }
 
 export async function getUserCourses() {
@@ -21,6 +27,24 @@ export async function getUserCourseDetail(courseId) {
 
 export async function patchUserInfo(body) {
   return patch(privateApiClient, '/api/users/me', body)
+}
+
+export async function patchUserPassword(body) {
+  return patch(privateApiClient, '/api/users/me/password', body)
+}
+
+export async function postProfileImageSignature() {
+  return post(privateApiClient, '/api/users/me/profileImage/signature', undefined)
+}
+
+export async function uploadImageToCloudinary(uploadUrl, formData) {
+  const response = await axios.post(uploadUrl, formData)
+
+  return response.data
+}
+
+export async function patchProfileImage(body) {
+  return patch(privateApiClient, '/api/users/me/profileImage', body)
 }
 
 // 현재 로그인한 사용자의 계정을 삭제한다.

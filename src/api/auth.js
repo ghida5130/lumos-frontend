@@ -9,6 +9,13 @@ export async function postLogin(body) {
   })
 }
 
+// 소셜 로그인 콜백 code를 Access Token과 사용자 정보로 교환한다.
+export async function postSocialExchange(body) {
+  return post(publicApiClient, '/api/auth/social/exchange', body, {
+    withCredentials: true,
+  })
+}
+
 // HttpOnly Refresh Token 쿠키를 이용해 Access Token을 재발급한다.
 export async function postRefreshToken() {
   return post(publicApiClient, '/api/auth/refresh', undefined, {

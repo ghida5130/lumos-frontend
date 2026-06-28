@@ -1,46 +1,58 @@
 <script setup>
-import { computed } from 'vue'
-import { useMutation } from '@tanstack/vue-query'
-import { RouterLink, useRouter } from 'vue-router'
-import { postLogout } from '@/api/auth'
-import { clearAuthSession } from '@/services/authSession'
-import { useAuthStore } from '@/stores/auth'
-import { useToastStore } from '@/stores/toast'
+import { computed } from "vue";
+import { useMutation } from "@tanstack/vue-query";
+import { RouterLink, useRouter } from "vue-router";
+import { postLogout } from "@/api/auth";
+import { clearAuthSession } from "@/services/authSession";
+import { useAuthStore } from "@/stores/auth";
+import { useToastStore } from "@/stores/toast";
+import googleIconUrl from "@/assets/images/commonIcon/google.svg";
 
-const router = useRouter()
-const authStore = useAuthStore()
-const toastStore = useToastStore()
+const router = useRouter();
+const authStore = useAuthStore();
+const toastStore = useToastStore();
 
 const logoutMutation = useMutation({
   mutationFn: postLogout,
   meta: {
-    errorMode: 'local',
+    errorMode: "local",
+  },
+  onMutate: () => {
+    authStore.setAuthStatus("로그아웃 처리 중입니다.");
   },
   onSuccess: () => {
-    clearAuthSession()
-    router.replace('/')
+    clearAuthSession();
+    toastStore.success("로그아웃되었습니다.");
+    router.replace("/").finally(() => {
+      authStore.clearAuthStatus();
+    });
   },
-})
+  onError: () => {
+    authStore.clearAuthStatus();
+    toastStore.error("로그아웃에 실패했습니다.");
+  },
+});
 
-const logoutErrorMessage = computed(() => logoutMutation.error.value?.message ?? '')
-const logout = () => logoutMutation.mutate()
+const logoutErrorMessage = computed(() => logoutMutation.error.value?.message ?? "");
+const isGoogleProvider = computed(() => authStore.provider === "GOOGLE");
+const logout = () => logoutMutation.mutate();
 const showToastTest = () => {
-  toastStore.success('토스트가 정상적으로 표시됩니다.')
-}
+  toastStore.success("토스트가 정상적으로 표시됩니다.");
+};
 
 const menuGroups = [
   [
-    { id: 'saved-routes', label: '저장한 여행 경로', routeName: 'saved-courses' },
-    { id: 'favorite-places', label: '여행지 즐겨찾기', routeName: 'favorites' },
+    { id: "saved-routes", label: "저장한 여행 경로", routeName: "saved-courses" },
+    { id: "favorite-places", label: "여행지 즐겨찾기", routeName: "favorites" },
+    { id: "my-reviews", label: "내가 쓴 리뷰 목록", routeName: "my-reviews" },
   ],
   [
-    { id: 'settings', label: '설정' },
-    { id: 'edit-profile', label: '프로필 수정하기', routeName: 'edit-profile' },
-    { id: 'notifications', label: '알림 설정' },
-    { id: 'withdraw', label: '회원 탈퇴', routeName: 'withdraw' },
-    { id: 'logout', label: '로그아웃', action: logout },
+    { id: "settings", label: "설정" },
+    { id: "change-password", label: "비밀번호 변경", routeName: "change-password" },
+    { id: "withdraw", label: "회원 탈퇴", routeName: "withdraw" },
+    { id: "logout", label: "로그아웃", action: logout },
   ],
-]
+];
 </script>
 
 <template>
@@ -48,19 +60,23 @@ const menuGroups = [
     <section class="profile-section">
       <div class="profile-summary">
         <div class="profile-avatar" aria-hidden="true">
-          <svg viewBox="0 0 24 24">
-            <circle cx="12" cy="8" r="3.5" />
-            <path d="M5.5 20c.7-4 3-6 6.5-6s5.8 2 6.5 6" />
-          </svg>
+          <img v-if="authStore.profileImageUrl" :src="authStore.profileImageUrl" alt="" />
         </div>
         <div class="profile-copy">
-          <h2>{{ authStore.nickname || '이름' }}</h2>
+          <h2>
+            <span v-if="isGoogleProvider" class="provider-badge" aria-label="Google 계정">
+              <img :src="googleIconUrl" alt="" />
+            </span>
+            <span>{{ authStore.nickname || "이름" }}</span>
+          </h2>
           <p>{{ authStore.email }}</p>
         </div>
       </div>
 
-      <RouterLink class="edit-profile-button" :to="{ name: 'edit-profile' }">프로필 수정하기</RouterLink>
-      <button class="toast-test-button" type="button" @click="showToastTest">토스트 테스트</button>
+      <RouterLink class="edit-profile-button" :to="{ name: 'edit-profile' }"
+        >프로필 수정하기</RouterLink
+      >
+      <!-- <button class="toast-test-button" type="button" @click="showToastTest">토스트 테스트</button> -->
     </section>
 
     <nav class="mypage-menu">
@@ -79,7 +95,9 @@ const menuGroups = [
             :disabled="item.id === 'logout' && logoutMutation.isPending.value"
             @click="item.action?.()"
           >
-            <span>{{ item.label }}</span>
+            <span>{{
+              item.id === "logout" && logoutMutation.isPending.value ? "로그아웃 중..." : item.label
+            }}</span>
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path d="m9 18 6-6-6-6" />
             </svg>
@@ -88,8 +106,8 @@ const menuGroups = [
       </ul>
 
       <p v-if="logoutErrorMessage" class="logout-error">{{ logoutErrorMessage }}</p>
+      <p v-if="logoutMutation.isPending.value" class="logout-status">로그아웃 처리 중입니다.</p>
     </nav>
-
   </main>
 </template>
 
@@ -117,6 +135,12 @@ const menuGroups = [
   text-align: center;
 }
 
+.logout-status {
+  color: #bdebe3;
+  font-size: 0.78rem;
+  text-align: center;
+}
+
 .profile-summary {
   display: flex;
   align-items: center;
@@ -125,15 +149,23 @@ const menuGroups = [
 }
 
 .profile-avatar {
-  display: grid;
-  flex: 0 0 auto;
+  flex: 0 0 4.25rem;
   width: 4.25rem;
   height: 4.25rem;
+  display: grid;
   place-items: center;
   color: #dff8f2;
   background: #69b4a5;
   border-radius: 50%;
   box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.18);
+  overflow: hidden;
+}
+
+.profile-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
 }
 
 .profile-avatar svg {
@@ -149,8 +181,36 @@ const menuGroups = [
 }
 
 .profile-copy h2 {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-width: 0;
   font-size: 1rem;
   font-weight: 700;
+}
+
+.profile-copy h2 span:last-child {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.provider-badge {
+  flex: 0 0 auto;
+  display: inline-grid;
+  place-items: center;
+  width: 1.35rem;
+  height: 1.35rem;
+  background: #f7f9fc;
+  border: 1px solid rgba(7, 19, 33, 0.08);
+  border-radius: 999px;
+}
+
+.provider-badge img {
+  width: 0.9rem;
+  height: 0.9rem;
+  display: block;
 }
 
 .profile-copy p {

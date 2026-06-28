@@ -11,7 +11,7 @@ export async function getPlaceList({ category, keyword, page, size } = {}) {
 
 // 장소 상세 정보 조회 [get: /api/place/{placeId}]
 export async function getPlaceDetail(placeId) {
-  return get(publicApiClient, `/api/place/${placeId}`);
+  return get(privateApiClient, `/api/place/${placeId}`);
 }
 
 // 장소 즐겨찾기 추가 [post: /api/place/{placeId}/favorite]

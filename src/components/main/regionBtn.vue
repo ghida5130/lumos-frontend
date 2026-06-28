@@ -1,4 +1,5 @@
 <script setup>
+import { useRouter } from 'vue-router'
 import seoulIcon from '@/assets/images/regionIcon/seoul.svg'
 import busanIcon from '@/assets/images/regionIcon/busan.svg'
 import jeonjuIcon from '@/assets/images/regionIcon/jeonju.svg'
@@ -6,6 +7,8 @@ import incheonIcon from '@/assets/images/regionIcon/incheon.svg'
 import gangneungIcon from '@/assets/images/regionIcon/gangneung.svg'
 import daejeonIcon from '@/assets/images/regionIcon/daejeon.svg'
 import tongyeongIcon from '@/assets/images/regionIcon/tongyeong.svg'
+
+const router = useRouter()
 
 const functionButtons = [
   { name: '서울', icon: seoulIcon },
@@ -16,6 +19,15 @@ const functionButtons = [
   { name: '대전', icon: daejeonIcon },
   { name: '통영', icon: tongyeongIcon },
 ]
+
+const goToRegionList = (regionName) => {
+  router.push({
+    name: 'list',
+    query: {
+      keyword: regionName,
+    },
+  })
+}
 </script>
 
 <template>
@@ -25,9 +37,15 @@ const functionButtons = [
       <p>지역명으로 빠르게 관광지 탐색하기</p>
     </div>
     <div class="function-buttons">
-      <button v-for="button in functionButtons" :key="button" class="function-button" type="button">
+      <button
+        v-for="button in functionButtons"
+        :key="button.name"
+        class="function-button"
+        type="button"
+        @click="goToRegionList(button.name)"
+      >
         <div>
-          <img :src="button.icon" alt="seoul button" />
+          <img :src="button.icon" :alt="`${button.name} 버튼`" />
         </div>
         {{ button.name }}
       </button>

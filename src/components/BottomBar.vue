@@ -248,4 +248,13 @@ onUnmounted(() => {
     transition-duration: 0.01ms;
   }
 }
+
+@media (min-width: 900px) {
+  .wrap {
+    left: calc(50% + 12.5rem + clamp(1.5rem, 3.5vw, 3rem));
+    bottom: 2rem;
+    width: 32rem;
+    transform: translateX(-50%);
+  }
+}
 </style>

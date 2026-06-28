@@ -11,6 +11,16 @@ import router from './router'
 import { initializeAuthSession } from './services/authSession'
 import { handleApiError } from './services/apiErrorHandler'
 
+function registerServiceWorker() {
+  if (!('serviceWorker' in navigator) || import.meta.env.VITE_API_MOCKING === 'true') {
+    return
+  }
+
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js')
+  })
+}
+
 function handleGlobalError(error, meta, context = {}) {
   const mode =
     meta?.errorMode ?? (context.source === 'query' && context.hasCachedData ? 'silent' : 'page')
@@ -85,3 +95,4 @@ async function bootstrap() {
 }
 
 bootstrap()
+registerServiceWorker()

@@ -1,28 +1,32 @@
 <script setup>
-import { useToastStore } from '@/stores/toast'
+import { useToastStore } from "@/stores/toast";
 
-const toastStore = useToastStore()
-
-const typeLabels = {
-  success: '성공',
-  error: '오류',
-  warning: '주의',
-  info: '알림',
-}
+const toastStore = useToastStore();
 </script>
 
 <template>
   <Teleport to="body">
-    <TransitionGroup name="toast" tag="section" class="toast-container" aria-live="polite" aria-label="알림">
+    <TransitionGroup
+      name="toast"
+      tag="section"
+      class="toast-container"
+      aria-live="polite"
+      aria-label="알림"
+    >
       <article
         v-for="toast in toastStore.toasts"
         :key="toast.id"
         class="toast"
         :class="`toast-${toast.type}`"
         role="status"
+        tabindex="0"
+        @click="toastStore.remove(toast.id)"
+        @keydown.enter="toastStore.remove(toast.id)"
+        @keydown.space.prevent="toastStore.remove(toast.id)"
       >
         <div class="toast-content">
-          <strong class="toast-title">{{ toast.title || typeLabels[toast.type] }}</strong>
+          <span class="toast-indicator" aria-hidden="true"></span>
+          <!-- <strong class="toast-title">{{ toast.title || typeLabels[toast.type] }}</strong> -->
           <p class="toast-message">{{ toast.message }}</p>
         </div>
       </article>
@@ -45,67 +49,106 @@ const typeLabels = {
 }
 
 .toast {
-  padding: 0.62rem 0.8rem 0.62rem 0.85rem;
+  position: relative;
+  overflow: hidden;
+  padding: 0.72rem 0.9rem;
   color: #f8fbff;
-  background: rgba(16, 27, 39, 0.96);
-  border: 1px solid rgba(199, 214, 229, 0.18);
-  border-left: 0.18rem solid #48cfff;
-  border-radius: 0.45rem;
-  box-shadow: 0 0.7rem 1.5rem rgba(0, 0, 0, 0.24);
-  backdrop-filter: blur(14px);
+  background: rgba(23, 34, 51, 0.88);
+  border: 1px solid rgba(49, 66, 88, 0.9);
+  border-radius: 0.7rem;
+  box-shadow: 0 0.45rem 1.1rem rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  cursor: pointer;
   pointer-events: auto;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.toast:focus {
+  outline: none;
+}
+
+.toast:focus-visible {
+  outline: 2px solid var(--toast-accent, #48cfff);
+  outline-offset: 0.18rem;
 }
 
 .toast-success {
-  border-left-color: #3ddc97;
+  --toast-accent: #69b4a5;
+  --toast-accent-glow: rgba(105, 180, 165, 0.18);
 }
 
 .toast-error {
-  border-left-color: #ff6b6b;
+  --toast-accent: #e58b91;
+  --toast-accent-glow: rgba(229, 139, 145, 0.18);
 }
 
 .toast-warning {
-  border-left-color: #ffd166;
+  --toast-accent: #d0b96f;
+  --toast-accent-glow: rgba(208, 185, 111, 0.18);
 }
 
 .toast-info {
-  border-left-color: #48cfff;
+  --toast-accent: #72d3ff;
+  --toast-accent-glow: rgba(114, 211, 255, 0.18);
 }
 
 .toast-content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
   min-width: 0;
 }
 
+.toast-indicator {
+  flex: 0 0 auto;
+  width: 0.48rem;
+  height: 0.48rem;
+  background: var(--toast-accent, #48cfff);
+  border-radius: 50%;
+  box-shadow: 0 0 0.35rem var(--toast-accent-glow, rgba(72, 207, 255, 0.18));
+  animation: indicatorPulse 1.8s ease-in-out infinite;
+}
+
 .toast-title {
-  display: block;
-  margin-bottom: 0.12rem;
-  color: #ffffff;
-  font-size: 0.76rem;
-  font-weight: 850;
+  flex: 0 0 auto;
+  color: #f7f9fc;
+  font-size: 0.74rem;
+  font-weight: 800;
   line-height: 1.2;
 }
 
+.toast-title::after {
+  color: rgba(245, 249, 255, 0.42);
+  content: "·";
+  margin-left: 0.45rem;
+}
+
 .toast-message {
+  min-width: 0;
   margin: 0;
-  color: rgba(232, 240, 249, 0.9);
+  overflow: hidden;
+  color: #c7d1de;
   font-size: 0.78rem;
   font-weight: 500;
-  line-height: 1.32;
-  overflow-wrap: anywhere;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .toast-enter-active,
 .toast-leave-active,
 .toast-move {
-  transition:
-    opacity 0.24s ease,
-    transform 0.24s cubic-bezier(0.22, 1, 0.36, 1);
+  transition: transform 0.52s cubic-bezier(0.19, 1, 0.22, 1);
 }
 
 .toast-enter-from,
 .toast-leave-to {
-  opacity: 0;
-  transform: translateY(-1rem);
+  transform: translateY(calc(-100% - 6rem - env(safe-area-inset-top)));
 }
 
 .toast-leave-active {
@@ -113,9 +156,31 @@ const typeLabels = {
   width: 100%;
 }
 
+@keyframes indicatorPulse {
+  0%,
+  100% {
+    opacity: 0.72;
+    transform: scale(0.94);
+  }
+
+  50% {
+    opacity: 0.96;
+    transform: scale(1.02);
+  }
+}
+
 @media (max-width: 480px) {
   .toast-container {
-    width: calc(100vw - 2rem);
+    width: calc(100vw - 3rem);
+  }
+}
+
+@media (min-width: 900px) {
+  .toast-container {
+    /* PC버전에서 내려오는 정도 */
+    top: calc(3rem + env(safe-area-inset-top));
+    left: calc(50% + 12.5rem + clamp(1.5rem, 3.5vw, 3rem));
+    width: min(calc(32rem - 2rem), 21rem);
   }
 }
 </style>

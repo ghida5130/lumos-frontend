@@ -2,10 +2,23 @@
 import { MarkerClusterer } from "@googlemaps/markerclusterer";
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useRouter } from "vue-router";
+import clusterIconUrl from "@/assets/images/commonIcon/cluster.png";
+import fPinIconUrl from "@/assets/images/commonIcon/fPin2.png";
+import gPinIconUrl from "@/assets/images/commonIcon/gPin2.png";
+import sPinIconUrl from "@/assets/images/commonIcon/sPin2.png";
 
 const GOOGLE_MAPS_API_KEY = "AIzaSyBtICOXs5sJoQEIdpUcGOoLDdp_yqDk_4E";
 const GOOGLE_MAPS_SCRIPT_ID = "google-maps-js-api";
 const MAP_PLACES_STORAGE_KEY = "lumos:map-places";
+const CATEGORY_PIN_ICONS = {
+  숙소: sPinIconUrl,
+  ACCOMMODATION: sPinIconUrl,
+  관광지: gPinIconUrl,
+  TOURIST_SPOT: gPinIconUrl,
+  식당: fPinIconUrl,
+  맛집: fPinIconUrl,
+  RESTAURANT: fPinIconUrl,
+};
 
 const props = defineProps({
   places: {
@@ -102,29 +115,16 @@ function loadGoogleMaps() {
   });
 }
 
-function createPinIcon(isSelected = false) {
-  const width = isSelected ? 42 : 34;
-  const height = isSelected ? 50 : 42;
-  const fillColor = isSelected ? "#8cddff" : "#7fc7b2";
-  const strokeColor = isSelected ? "#071321" : "#0f1d2a";
-  const svg = `
-    <svg width="${width}" height="${height}" viewBox="0 0 34 42" xmlns="http://www.w3.org/2000/svg">
-      <filter id="shadow" x="-30%" y="-20%" width="160%" height="160%">
-        <feDropShadow dx="0" dy="3" stdDeviation="3" flood-color="#000000" flood-opacity="0.35"/>
-      </filter>
-      <path
-        filter="url(#shadow)"
-        d="M17 2C9.8 2 4 7.8 4 15c0 9.7 13 25 13 25s13-15.3 13-25C30 7.8 24.2 2 17 2Z"
-        fill="${fillColor}"
-        stroke="${strokeColor}"
-        stroke-width="2"
-      />
-      <circle cx="17" cy="15" r="5" fill="${strokeColor}"/>
-    </svg>
-  `;
+function getPinIconUrl(category) {
+  return CATEGORY_PIN_ICONS[category] ?? gPinIconUrl;
+}
+
+function createPinIcon(place, isSelected = false) {
+  const width = isSelected ? 41 : 33;
+  const height = isSelected ? 50 : 40;
 
   return {
-    url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`,
+    url: getPinIconUrl(place?.category),
     scaledSize: new window.google.maps.Size(width, height),
     anchor: new window.google.maps.Point(width / 2, height),
   };
@@ -134,7 +134,7 @@ function updateMarkerStyles() {
   markers.forEach(({ marker, place }) => {
     const isSelected = selectedPlace.value?.id === place.id;
 
-    marker.setIcon(createPinIcon(isSelected));
+    marker.setIcon(createPinIcon(place, isSelected));
     marker.setZIndex(isSelected ? 20 : 10);
   });
 }
@@ -238,22 +238,24 @@ function handleSheetPointerUp() {
 }
 
 function createClusterIcon(count) {
-  const size = count >= 10 ? 48 : 42;
-  const svg = `
-    <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">
-      <filter id="shadow" x="-30%" y="-20%" width="160%" height="160%">
-        <feDropShadow dx="0" dy="4" stdDeviation="4" flood-color="#000000" flood-opacity="0.38"/>
-      </filter>
-      <circle cx="${size / 2}" cy="${size / 2}" r="${size / 2 - 3}" fill="#8cddff" stroke="#071321" stroke-width="3" filter="url(#shadow)"/>
-      <circle cx="${size / 2}" cy="${size / 2}" r="${size / 2 - 9}" fill="rgba(7,19,33,0.16)"/>
-      <text x="50%" y="54%" dominant-baseline="middle" text-anchor="middle" fill="#071321" font-family="Arial, sans-serif" font-size="15" font-weight="800">${count}</text>
-    </svg>
-  `;
+  const size = count >= 100 ? 46 : count >= 10 ? 42 : 35;
 
   return {
-    url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`,
+    url: clusterIconUrl,
     scaledSize: new window.google.maps.Size(size, size),
     anchor: new window.google.maps.Point(size / 2, size / 2),
+    labelOrigin: new window.google.maps.Point(size / 2, size / 2),
+  };
+}
+
+function createClusterLabel(count) {
+  return {
+    text: count > 99 ? "99+" : String(count),
+    color: "#f7fbff",
+    className: "map-cluster-label",
+    fontFamily: "SUIT, Arial, sans-serif",
+    fontSize: count >= 100 ? "11px" : count >= 10 ? "12px" : "13px",
+    fontWeight: "900",
   };
 }
 
@@ -306,7 +308,7 @@ function renderMarkers() {
         lng: place.longitude,
       },
       title: place.title,
-      icon: createPinIcon(false),
+      icon: createPinIcon(place, false),
       zIndex: 10,
     });
 
@@ -330,6 +332,7 @@ function renderMarkers() {
         return new window.google.maps.Marker({
           position,
           icon: createClusterIcon(count),
+          label: createClusterLabel(count),
           zIndex: baseZIndex + count,
         });
       },
@@ -365,11 +368,12 @@ async function initializeMap() {
           stylers: [{ color: "#2f4055" }],
         },
         { featureType: "poi", elementType: "geometry", stylers: [{ color: "#1d3044" }] },
-        { featureType: "poi", elementType: "labels.text.fill", stylers: [{ color: "#91a0b4" }] },
+        { featureType: "poi", elementType: "labels", stylers: [{ visibility: "off" }] },
         { featureType: "road", elementType: "geometry", stylers: [{ color: "#26394e" }] },
         { featureType: "road", elementType: "geometry.stroke", stylers: [{ color: "#0d1828" }] },
         { featureType: "road", elementType: "labels.text.fill", stylers: [{ color: "#9fb0c4" }] },
         { featureType: "transit", elementType: "geometry", stylers: [{ color: "#223249" }] },
+        { featureType: "transit", elementType: "labels.icon", stylers: [{ visibility: "off" }] },
         { featureType: "water", elementType: "geometry", stylers: [{ color: "#06111e" }] },
         { featureType: "water", elementType: "labels.text.fill", stylers: [{ color: "#62768e" }] },
       ],
@@ -461,7 +465,7 @@ onBeforeUnmount(() => {
 
         <div class="sheet-summary">
           <div class="sheet-image">
-          <img v-if="selectedPlace.image" :src="selectedPlace.image" :alt="selectedPlace.title" />
+            <img v-if="selectedPlace.image" :src="selectedPlace.image" :alt="selectedPlace.title" />
           </div>
 
           <div class="sheet-copy">
@@ -474,9 +478,7 @@ onBeforeUnmount(() => {
         </div>
 
         <div class="sheet-actions">
-          <button type="button" class="sheet-secondary-button" @click="expandSheet">
-            더 보기
-          </button>
+          <button type="button" class="sheet-secondary-button" @click="expandSheet">더 보기</button>
           <button type="button" class="sheet-primary-button" @click="goToDetail(selectedPlace)">
             상세보기
           </button>
@@ -486,7 +488,7 @@ onBeforeUnmount(() => {
           <dl class="sheet-detail-grid">
             <div>
               <dt>분류</dt>
-              <dd>{{ selectedPlace.category || '장소' }}</dd>
+              <dd>{{ selectedPlace.category || "장소" }}</dd>
             </div>
             <div>
               <dt>좋아요</dt>
@@ -556,6 +558,13 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
+:global(.map-cluster-label) {
+  text-shadow:
+    0 1px 2px rgba(7, 19, 33, 0.92),
+    0 0 4px rgba(7, 19, 33, 0.86);
+  line-height: 1;
+}
+
 .map-view {
   position: fixed;
   inset: 3rem 0 0;
@@ -632,8 +641,7 @@ onBeforeUnmount(() => {
   padding: 0.65rem 1rem calc(1rem + env(safe-area-inset-bottom));
   overflow: hidden;
   background:
-    linear-gradient(180deg, rgba(127, 199, 178, 0.09), transparent 8rem),
-    rgba(17, 29, 42, 0.96);
+    linear-gradient(180deg, rgba(127, 199, 178, 0.09), transparent 8rem), rgba(17, 29, 42, 0.96);
   border: 1px solid rgba(126, 143, 165, 0.24);
   border-bottom: 0;
   border-radius: 1.25rem 1.25rem 0 0;
@@ -947,6 +955,13 @@ onBeforeUnmount(() => {
     max-width: 34rem;
     border: 1px solid rgba(126, 143, 165, 0.24);
     border-bottom: 0;
+  }
+}
+
+@media (min-width: 900px) {
+  .map-view {
+    position: absolute;
+    inset: 3rem 0 0;
   }
 }
 </style>

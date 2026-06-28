@@ -1,5 +1,5 @@
 import { privateApiClient } from '@/lib/http/privateApiClient'
-import { post } from '@/lib/http/request'
+import { patch, post } from '@/lib/http/request'
 
 export async function postCourseRecommend(body) {
   return post(privateApiClient, '/api/course/recommend', body, {
@@ -9,4 +9,8 @@ export async function postCourseRecommend(body) {
 
 export async function postCourse(body) {
   return post(privateApiClient, '/api/course', body)
+}
+
+export async function patchCourse(courseId, body) {
+  return patch(privateApiClient, `/api/course/${courseId}`, body)
 }

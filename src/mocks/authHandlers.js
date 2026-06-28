@@ -113,11 +113,11 @@ export const authHandlers = [
   http.get("*/api/auth/check-nickname", async ({ request }) => {
     await mockDelay();
 
-    const email = new URL(request.url).searchParams.get("nickname")?.trim().toLowerCase();
-    const registeredEmails = new Set(["nickname", "duplicate"]);
+    const nickname = new URL(request.url).searchParams.get("nickname")?.trim().toLowerCase();
+    const registeredNicknames = new Set(["nickname", "duplicate"]);
 
     // nickname이 제대로 입력되었고 기존 닉네임중 없을때 true
-    const available = Boolean(email) && !registeredEmails.has(email);
+    const available = Boolean(nickname) && !registeredNicknames.has(nickname);
 
     return HttpResponse.json({
       statusCode: 200,
@@ -191,10 +191,12 @@ export const authHandlers = [
           expiresIn: 3600,
           user: {
             userId: 1,
-            email: "user@example.com",
-            nickname: "test",
+            email: "user-pinia@example.com",
+            nickname: "test-pinia",
+            provider: "GOOGLE",
             role: "USER",
-            profileImageUrl: "https://example.com/profile/default.png",
+            profileImageUrl:
+              "https://media.istockphoto.com/id/1196083861/vector/simple-man-head-icon-set.jpg?s=612x612&w=0&k=20&c=a8fwdX6UKUVCOedN_p0pPszu8B4f6sjarDmUGHngvdM=",
           },
         },
         error: null,
@@ -204,6 +206,59 @@ export const authHandlers = [
         headers: {
           "Set-Cookie":
             "refreshToken=mock-refresh-token; HttpOnly; Secure; SameSite=Lax; Path=/api/auth; Max-Age=1209600",
+        },
+      },
+    );
+  }),
+
+  // 소셜 로그인 code 교환 ----------------------------------------------------------------------------------------------------
+  http.post("*/api/auth/social/exchange", async ({ request }) => {
+    await mockDelay();
+
+    const body = await request.json();
+    const responseBase = {
+      timestamp: new Date().toISOString(),
+      path: "/api/auth/social/exchange",
+    };
+
+    if (!body?.code) {
+      return HttpResponse.json(
+        {
+          ...responseBase,
+          statusCode: 400,
+          message: "구글 로그인 인증 코드가 없습니다.",
+          data: null,
+          error: "INVALID_SOCIAL_CODE",
+        },
+        { status: 400 },
+      );
+    }
+
+    return HttpResponse.json(
+      {
+        ...responseBase,
+        statusCode: 200,
+        message: "구글 로그인에 성공했습니다.",
+        data: {
+          accessToken: "mock-google-access-token",
+          tokenType: "Bearer",
+          expiresIn: 3600,
+          user: {
+            userId: 2,
+            email: "google-user@example.com",
+            nickname: "google-user",
+            provider: "GOOGLE",
+            role: "USER",
+            profileImageUrl: "https://example.com/profile/google-user.png",
+          },
+        },
+        error: null,
+      },
+      {
+        status: 200,
+        headers: {
+          "Set-Cookie":
+            "refreshToken=mock-google-refresh-token; HttpOnly; Secure; SameSite=Lax; Path=/api/auth; Max-Age=1209600",
         },
       },
     );
@@ -262,6 +317,7 @@ export const authHandlers = [
           userId: 1,
           email: "user@example.com",
           nickname: "test",
+          provider: "LOCAL",
           role: "USER",
           profileImageUrl: "https://example.com/profile/default.png",
         },

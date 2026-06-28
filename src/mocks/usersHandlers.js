@@ -132,9 +132,8 @@ export const usersHandlers = [
       );
     }
 
-    const formData = await request.formData();
-    const nickname = formData.get("nickname");
-    const profileImage = formData.get("profileImage");
+    const body = await request.json();
+    const nickname = body.nickname;
 
     return HttpResponse.json({
       statusCode: 200,
@@ -146,11 +145,122 @@ export const usersHandlers = [
         email: "user@example.com",
         nickname: typeof nickname === "string" && nickname ? nickname : "로리",
         role: "USER",
-        profileImageUrl:
-          profileImage !== null && typeof profileImage !== "string"
-            ? "https://example.com/profile/profile-1.png"
-            : "https://example.com/profile/default.png",
+        profileImageUrl: "https://example.com/profile/default.png",
         updatedAt: "2026-03-18T06:51:01",
+      },
+      error: null,
+    });
+  }),
+
+  // --------------------------- 프로필 이미지 업로드 서명 발급 ---------------------------
+  http.post("*/api/users/me/profileImage/signature", async ({ request }) => {
+    await mockDelay();
+
+    const authorization = request.headers.get("Authorization");
+    const isValidAccessToken = /^Bearer mock-access-token(?:-\d+)?$/.test(authorization ?? "");
+
+    if (!isValidAccessToken) {
+      return HttpResponse.json(
+        {
+          statusCode: 401,
+          timestamp: "2026-03-18T06:51:01.242Z",
+          path: "/api/users/me/profileImage/signature",
+          message: "인증이 필요합니다.",
+          data: null,
+          error: "UNAUTHORIZED",
+        },
+        { status: 401 },
+      );
+    }
+
+    return HttpResponse.json({
+      statusCode: 200,
+      timestamp: "2026-06-18T09:19:12.560700800Z",
+      path: "/api/users/me/profileImage/signature",
+      message: "프로필 이미지 업로드 서명 발급이 완료되었습니다.",
+      data: {
+        cloudName: "dkdk1tl3f",
+        apiKey: "276789936493414",
+        timestamp: 1781774352,
+        signature: "8c407915a9274dbffb652143996d1cb3ac429385",
+        folder: "nighttrip/profiles/user_1",
+        publicId: "profile_mock",
+        uploadUrl: "https://api.cloudinary.com/v1_1/dkdk1tl3f/image/upload",
+      },
+      error: null,
+    });
+  }),
+
+  // --------------------------- Cloudinary 이미지 업로드 mock ---------------------------
+  http.post("https://api.cloudinary.com/v1_1/:cloudName/image/upload", async ({ request }) => {
+    await mockDelay();
+
+    const formData = await request.formData();
+    const folder = formData.get("folder") || "nighttrip/profiles/user_1";
+    const publicId = formData.get("public_id") || "profile_mock";
+    const fullPublicId = `${folder}/${publicId}`;
+    const version = 1781772848;
+
+    return HttpResponse.json({
+      asset_id: "mock_asset_id",
+      public_id: fullPublicId,
+      version,
+      version_id: "mock_version_id",
+      signature: "mock_cloudinary_signature",
+      width: 512,
+      height: 512,
+      format: "jpg",
+      resource_type: "image",
+      created_at: "2026-06-18T08:54:08Z",
+      tags: [],
+      bytes: 123456,
+      type: "upload",
+      etag: "mock_etag",
+      placeholder: false,
+      url: `http://res.cloudinary.com/dkdk1tl3f/image/upload/v${version}/${fullPublicId}.jpg`,
+      secure_url: `https://res.cloudinary.com/dkdk1tl3f/image/upload/v${version}/${fullPublicId}.jpg`,
+      asset_folder: folder,
+      display_name: publicId,
+      original_filename: "profile",
+      api_key: formData.get("api_key"),
+    });
+  }),
+
+  // --------------------------- 프로필 이미지 수정 ---------------------------
+  http.patch("*/api/users/me/profileImage", async ({ request }) => {
+    await mockDelay();
+
+    const authorization = request.headers.get("Authorization");
+    const isValidAccessToken = /^Bearer mock-access-token(?:-\d+)?$/.test(authorization ?? "");
+
+    if (!isValidAccessToken) {
+      return HttpResponse.json(
+        {
+          statusCode: 401,
+          timestamp: "2026-03-18T06:51:01.242Z",
+          path: "/api/users/me/profileImage",
+          message: "인증이 필요합니다.",
+          data: null,
+          error: "UNAUTHORIZED",
+        },
+        { status: 401 },
+      );
+    }
+
+    const body = await request.json();
+
+    return HttpResponse.json({
+      statusCode: 200,
+      timestamp: "2026-06-18T09:19:12.560700800Z",
+      path: "/api/users/me/profileImage",
+      message: "프로필 이미지가 변경되었습니다.",
+      data: {
+        userId: 1,
+        email: "user@example.com",
+        nickname: "닉네임",
+        role: "USER",
+        profileImageUrl: body.imageUrl,
+        updatedAt: "2026-06-18T09:19:12",
       },
       error: null,
     });
@@ -228,28 +338,28 @@ export const usersHandlers = [
           {
             placeId: 1,
             name: "Gwangalli Beach",
-            category: "NIGHT_VIEW",
-            imageUrl:
-              "https://www.visitbusan.net/uploadImgs/files/cntnts/20200101173020944_wufrotr",
+            category: "관광지",
+            imageUrl: "https://example.com/images/gwangalli.jpg",
             summary: "광안대교 야경을 감상할 수 있는 부산 대표 야경 명소입니다.",
-            averageRating: 4.9,
-            favoriteId: 10,
-            createdAt: "2026-03-18T06:51:01.242Z",
+            latitude: 123.123,
+            longitude: 34.221,
+            likeCount: 35,
+            tags: ["야경", "한식"],
           },
           {
-            placeId: 2,
-            name: "Marine City",
-            category: "NIGHT_VIEW",
-            imageUrl:
-              "https://img4.yna.co.kr/etc/inner/KR/2015/03/16/AKR20150316146100051_01_i_P4.jpg",
-            summary: "부산의 야경과 고층 빌딩 풍경을 함께 즐길 수 있는 장소입니다.",
-            averageRating: 4.8,
-            favoriteId: 11,
-            createdAt: "2026-03-18T07:10:20.123Z",
+            placeId: 1,
+            name: "Gwangalli Beach",
+            category: "관광지",
+            imageUrl: "https://example.com/images/gwangalli.jpg",
+            summary: "광안대교 야경을 감상할 수 있는 부산 대표 야경 명소입니다.",
+            latitude: 123.123,
+            longitude: 34.221,
+            likeCount: 35,
+            tags: ["야경", "한식"],
           },
         ],
-        page: page ? Number(page) : 0,
-        size: size ? Number(size) : 10,
+        page: page ? page : 0,
+        size: size ? size : 10,
         totalElements: 2,
         totalPages: 1,
         first: true,
