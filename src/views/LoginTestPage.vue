@@ -11,8 +11,8 @@ const router = useRouter();
 const authStore = useAuthStore();
 
 const SUCCESS_CREDENTIALS = {
-  email: "example@example.com",
-  password: "password",
+  email: "user1@test.com",
+  password: "12345678",
 };
 
 const FAILURE_CREDENTIALS = {

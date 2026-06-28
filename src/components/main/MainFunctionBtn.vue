@@ -1,15 +1,15 @@
 <script setup>
-import mapIcon from '@/assets/images/commonIcon/map.svg'
-import searchIcon from '@/assets/images/commonIcon/search.svg'
-import eventIcon from '@/assets/images/commonIcon/event.svg'
-import infoIcon from '@/assets/images/commonIcon/info.svg'
+import mapIcon from "@/assets/images/commonIcon/map.svg";
+import searchIcon from "@/assets/images/commonIcon/search.svg";
+import eventIcon from "@/assets/images/commonIcon/event.svg";
+import infoIcon from "@/assets/images/commonIcon/info.svg";
 
 const functionButtons = [
-  { name: '지도', icon: mapIcon, color: '#111B2C', to: '/list' },
-  { name: '검색', icon: searchIcon, color: '#17243B', to: '/list' },
-  { name: '이벤트', icon: eventIcon, color: '#1C2E4B', to: '/' },
-  { name: '정보', icon: infoIcon, color: '#283E65', to: '/' },
-]
+  { name: "지도adjofajsifoaser", icon: mapIcon, color: "#111B2C", to: "/list" },
+  { name: "검색", icon: searchIcon, color: "#17243B", to: "/list" },
+  { name: "이벤트", icon: eventIcon, color: "#1C2E4B", to: "/" },
+  { name: "정보", icon: infoIcon, color: "#283E65", to: "/" },
+];
 </script>
 
 <template>

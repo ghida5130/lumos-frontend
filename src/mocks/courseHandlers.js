@@ -1,5 +1,5 @@
 // src/mocks/handlers.js
-import { http, HttpResponse } from "msw";
+import { delay, http, HttpResponse } from "msw";
 import { mockDelay } from "./mockDelay";
 
 const isObject = (value) => value !== null && typeof value === "object" && !Array.isArray(value);
@@ -104,7 +104,7 @@ export const courseHandlers = [
       typeof body.date === "string" &&
       typeof body.content === "string";
 
-    await mockDelay();
+    await delay(5000);
 
     if (!isValidAccessToken(request)) {
       return HttpResponse.json(getUnauthorizedResponse(path), { status: 401 });
